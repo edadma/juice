@@ -1,14 +1,15 @@
 package io.github.edadma.juice
 
 import io.github.edadma.char_reader._
-import io.github.edadma.scemplate.{TemplateParserAST, TemplateRenderer}
+import io.github.edadma.scemplate
 
 import scala.annotation.tailrec
+import scala.language.postfixOps
 
 class Preprocessor(startDelim: String,
                    endDelim: String,
-                   shortcodes: Map[String, TemplateParserAST],
-                   renderer: TemplateRenderer) {
+                   shortcodes: Map[String, scemplate.TemplateParserAST],
+                   renderer: scemplate.Renderer) {
 
   def process(content: String): String = {
     val buf = new StringBuilder
@@ -20,8 +21,10 @@ class Preprocessor(startDelim: String,
           case Some(Some((shortcode, rest))) =>
             new ShortcodeParser(shortcode, r.line, r.col).parseShortcode match {
               case ShortcodeStartAST(Ident(pos, name), attrs, closed) =>
+                val data = attrs map { case (Ident(_, k), v) => k -> v.getOrElse("true") } toMap
+
                 shortcodes get name match {
-                  case Some(template) => buf ++= renderer.render(Nil, template)
+                  case Some(template) => buf ++= renderer.render(data, template)
                   case None           => r.error(s"unknown shortcode: $name")
                 }
               case ShortcodeEndAST(Ident(_, name)) =>

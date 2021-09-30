@@ -9,14 +9,15 @@ class ShortcodeParser(val input: ParserInput, line: Int, col: Int) extends Parse
 
   implicit def wsStr(s: String): Rule0 = rule(str(s) ~ sp)
 
-  def shortcode: Rule1[ShortcodeParserAST] = rule(shortcodeStart | shortcodeEnd)
+  def shortcode: Rule1[ShortcodeParserAST] = rule(sp ~ (shortcodeStart | shortcodeEnd))
 
-  def attribute: Rule1[String] = rule("=" ~ (word | singleQuoteString | doubleQuoteString) | push("true"))
+  def attribute: Rule1[Option[String]] =
+    rule(optional("=" ~ (word | singleQuoteString | doubleQuoteString)))
 
   def closed: Rule1[Boolean] = rule("/" ~ push(true) | push(false))
 
   def shortcodeStart: Rule1[ShortcodeStartAST] =
-    rule(ident ~ zeroOrMore(ident ~ attribute ~> Tuple2[Ident, String] _) ~ closed ~> ShortcodeStartAST)
+    rule(ident ~ zeroOrMore(ident ~ attribute ~> Tuple2[Ident, Option[String]] _) ~ closed ~> ShortcodeStartAST)
 
   def shortcodeEnd: Rule1[ShortcodeEndAST] = rule("/" ~ ident ~> ShortcodeEndAST)
 
@@ -24,12 +25,11 @@ class ShortcodeParser(val input: ParserInput, line: Int, col: Int) extends Parse
 
   def doubleQuoteString: Rule1[String] = rule('"' ~ capture(zeroOrMore("\\\"" | noneOf("\"\n"))) ~ '"' ~ sp)
 
-  def word: Rule1[String] =
-    rule(capture((CharPredicate.Alpha | '_' | '-') ~ zeroOrMore(CharPredicate.AlphaNum | '_' | '-')) ~ sp)
+  def word: Rule1[String] = rule(capture(oneOrMore(CharPredicate.AlphaNum | '_' | '-')) ~ sp)
 
   def ident: Rule1[Ident] =
     rule {
-      pos ~ word ~> Ident
+      pos ~ capture((CharPredicate.Alpha | '_' | '-') ~ zeroOrMore(CharPredicate.AlphaNum | '_' | '-')) ~ sp ~> Ident
     }
 
   def pos: Rule1[Int] = rule(push(cursor))
