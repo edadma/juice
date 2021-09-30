@@ -1,4 +1,4 @@
-package io.github.edadma.cross_template
+package io.github.edadma.juice
 
 object Main extends App {
 
