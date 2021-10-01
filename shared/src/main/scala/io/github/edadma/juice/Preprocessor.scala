@@ -6,10 +6,7 @@ import io.github.edadma.scemplate
 import scala.annotation.tailrec
 import scala.language.postfixOps
 
-class Preprocessor(startDelim: String,
-                   endDelim: String,
-                   shortcodes: Map[String, scemplate.TemplateParserAST],
-                   renderer: scemplate.Renderer) {
+class Preprocessor(startDelim: String, endDelim: String, shortcodes: Loader, renderer: scemplate.Renderer) {
 
   def process(content: String): String = {
     val buf = new StringBuilder
@@ -23,7 +20,7 @@ class Preprocessor(startDelim: String,
               case ShortcodeStartAST(Ident(pos, name), attrs, closed) =>
                 val data = attrs map { case (Ident(_, k), v) => k -> v.getOrElse("true") } toMap
 
-                shortcodes get name match {
+                shortcodes find name match {
                   case Some(template) => buf ++= renderer.render(data, template)
                   case None           => r.error(s"unknown shortcode: $name")
                 }
