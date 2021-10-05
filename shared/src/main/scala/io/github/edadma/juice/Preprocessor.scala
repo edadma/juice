@@ -1,12 +1,13 @@
 package io.github.edadma.juice
 
 import io.github.edadma.char_reader._
-import io.github.edadma.scemplate
+import io.github.edadma.squiggly
 
+import java.io.{ByteArrayOutputStream, PrintStream}
 import scala.annotation.tailrec
 import scala.language.postfixOps
 
-class Preprocessor(startDelim: String, endDelim: String, shortcodes: Loader, renderer: scemplate.Renderer) {
+class Preprocessor(startDelim: String, endDelim: String, shortcodes: Loader, renderer: squiggly.Renderer) {
 
   def process(content: String): String = {
     val buf = new StringBuilder
@@ -21,8 +22,13 @@ class Preprocessor(startDelim: String, endDelim: String, shortcodes: Loader, ren
                 val data = attrs map { case (Ident(_, k), v) => k -> v.getOrElse("true") } toMap
 
                 shortcodes find name match {
-                  case Some(template) => buf ++= renderer.render(data, template)
-                  case None           => r.error(s"unknown shortcode: $name")
+                  case Some(template) =>
+                    val code = new ByteArrayOutputStream
+                    val out = new PrintStream(code)
+
+                    renderer.render(data, template, out)
+                    buf ++= code.toString
+                  case None => r.error(s"unknown shortcode: $name")
                 }
               case ShortcodeEndAST(Ident(_, name)) =>
             }

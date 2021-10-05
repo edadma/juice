@@ -1,6 +1,7 @@
 package io.github.edadma.juice
 
 import org.parboiled2._
+import shapeless.HNil
 
 import scala.language.implicitConversions
 import scala.util.{Failure, Success}
@@ -11,13 +12,14 @@ class ShortcodeParser(val input: ParserInput, line: Int, col: Int) extends Parse
 
   def shortcode: Rule1[ShortcodeParserAST] = rule(sp ~ (shortcodeStart | shortcodeEnd))
 
-  def attribute: Rule1[Option[String]] =
-    rule(optional("=" ~ (word | singleQuoteString | doubleQuoteString)))
+  def attribute: Rule1[String] =
+    rule("=" ~ (word | singleQuoteString | doubleQuoteString))
 
   def closed: Rule1[Boolean] = rule("/" ~ push(true) | push(false))
 
   def shortcodeStart: Rule1[ShortcodeStartAST] =
-    rule(ident ~ zeroOrMore(ident ~ attribute ~> Tuple2[Ident, Option[String]] _) ~ closed ~> ShortcodeStartAST)
+    rule(
+      ident ~ zeroOrMore(ident ~ optional(attribute) ~> Tuple2[Ident, Option[String]] _) ~ closed ~> ShortcodeStartAST)
 
   def shortcodeEnd: Rule1[ShortcodeEndAST] = rule("/" ~ ident ~> ShortcodeEndAST)
 

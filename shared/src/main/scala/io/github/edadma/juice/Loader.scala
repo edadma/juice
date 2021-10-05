@@ -1,10 +1,8 @@
 package io.github.edadma.juice
 
 import scala.jdk.CollectionConverters._
-
-import io.github.edadma.scemplate.{BuiltinFunction, TemplateParser, TemplateParserAST}
-
 import io.github.edadma.cross_platform._
+import io.github.edadma.squiggly._
 
 import java.nio.file.{Files, Path}
 import scala.collection.mutable
@@ -13,9 +11,9 @@ class Loader(paths: Seq[Path],
              functions: Map[String, BuiltinFunction],
              namespaces: Map[String, Map[String, BuiltinFunction]]) {
 
-  val map = new mutable.HashMap[String, TemplateParserAST]
+  val map = new mutable.HashMap[String, ParserAST]
 
-  def find(name: String): Option[TemplateParserAST] =
+  def find(name: String): Option[ParserAST] =
     map get name match {
       case None =>
         for (d <- paths)
@@ -29,7 +27,7 @@ class Loader(paths: Seq[Path],
                     case -1  => filename == name
                     case dot => filename.substring(0, dot) == name
                   }) {
-                val t = new TemplateParser(readFile(path), "{{", "}}", functions, namespaces).parse
+                val t = new Parser("{{", "}}", functions, namespaces).parse(readFile(path))
 
                 map(name) = t
                 return Some(t)
