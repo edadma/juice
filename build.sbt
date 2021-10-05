@@ -38,7 +38,8 @@ lazy val juice = crossProject(JSPlatform, JVMPlatform, NativePlatform).in(file("
     libraryDependencies += "org.scala-js" %% "scalajs-stubs" % "1.0.0" % "provided",
   ).
   nativeSettings(
-    nativeLinkStubs := true
+    nativeLinkStubs := true,
+    libraryDependencies += "org.ekrich" %%% "sjavatime" % "1.1.5"
   ).
   jsSettings(
     jsEnv := new org.scalajs.jsenv.nodejs.NodeJSEnv(),
@@ -47,4 +48,5 @@ lazy val juice = crossProject(JSPlatform, JVMPlatform, NativePlatform).in(file("
     Test / scalaJSUseMainModuleInitializer := false,
     Test / scalaJSUseTestModuleInitializer := true,
     scalaJSUseMainModuleInitializer := true,
+    libraryDependencies += "org.ekrich" %%% "sjavatime" % "1.1.5"
   )

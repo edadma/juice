@@ -1,10 +1,16 @@
 package io.github.edadma.juice
 
+import org.ekrich.config._
+
 object Main extends App {
 
-  println("""
-      |> cross_templateJVM/run
-      |> cross_templateJS/run
-      |> cross_templateNative/run""".trim.stripMargin)
+  val conf = ConfigFactory.parseString(
+    """
+      |baseurl = http://localhost:8080
+      |""".stripMargin,
+    ConfigParseOptions.defaults.setSyntax(ConfigSyntax.PROPERTIES)
+  )
+
+  println(conf.getString("baseurl"))
 
 }
