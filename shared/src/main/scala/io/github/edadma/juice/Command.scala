@@ -8,4 +8,4 @@ case class BuildCommand(src: Path = Paths.get("."), dst: Path = null) extends Co
 
 case class ServeCommand(src: Path = Paths.get("."), dst: Path = null) extends Command
 
-case object ConfigCommand extends Command
+case class ConfigCommand(src: Path = Paths.get(".")) extends Command

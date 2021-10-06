@@ -40,18 +40,28 @@ object Main extends App {
       note(section("Commands")),
       cmd("build")
         .action((_, c) => c.copy(cmd = Some(BuildCommand())))
+        .text("  Build the site")
         .children(
           opt[File]('d', "dest")
             .valueName("<path>")
             .action((o, c) => c.copy(cmd = Some(BuildCommand(dst = o.toPath))))
-            .text("output directory path"),
+            .text("destination directory path"),
           opt[File]('s', "source")
             .valueName("<path>")
             .action((i, c) => c.copy(cmd = Some(BuildCommand(src = i.toPath))))
-            .text("input directory path"),
+            .text("site sources directory path"),
         ),
+      cmd("config")
+        .action((_, c) => c.copy(cmd = Some(ConfigCommand())))
+        .text("  Show build configuration")
+        .children(
+          opt[File]('s', "source")
+            .valueName("<path>")
+            .action((s, c) => c.copy(cmd = Some(ConfigCommand(src = s.toPath))))
+            .text("site sources directory path")),
       cmd("serve")
         .action((_, c) => c.copy(cmd = Some(ServeCommand())))
+        .text("  Build and serve the site")
         .children(
           opt[File]('d', "dest")
             .valueName("<path>")
@@ -60,7 +70,7 @@ object Main extends App {
           opt[File]('s', "source")
             .valueName("<path>")
             .action((s, c) => c.copy(cmd = Some(ServeCommand(src = s.toPath))))
-            .text("source directory path"),
+            .text("site sources directory path"),
         )
     )
   }
@@ -85,8 +95,9 @@ object Main extends App {
       if (!canCreate(d)) problem(s"not a writable directory: $d")
 
       App.run(build.copy(dst = d))
-    case Some(_) => println(OParser.usage(parser))
-    case _       =>
+    case Some(Config(_, _, Some(cmd))) => App run cmd
+    case Some(_)                       => println(OParser.usage(parser))
+    case _                             =>
   }
 
 }
