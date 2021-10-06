@@ -9,9 +9,9 @@ object Main extends App {
 
   trait Command
 
-  case class BuildCommand(src: Path = Paths.get("."), dst: Option[Path] = None) extends Command
+  case class BuildCommand(src: Path = Paths.get("."), dst: Path = null) extends Command
 
-  case class ServeCommand(src: Path = Paths.get("."), dst: Option[Path] = None) extends Command
+  case class ServeCommand(src: Path = Paths.get("."), dst: Path = null) extends Command
 
   case object ConfigCommand extends Command
 
@@ -51,7 +51,7 @@ object Main extends App {
         .children(
           opt[File]('d', "dest")
             .valueName("<path>")
-            .action((o, c) => c.copy(cmd = Some(BuildCommand(dst = Some(o.toPath)))))
+            .action((o, c) => c.copy(cmd = Some(BuildCommand(dst = o.toPath))))
             .text("output directory path"),
           opt[File]('s', "source")
             .valueName("<path>")
@@ -63,7 +63,7 @@ object Main extends App {
         .children(
           opt[File]('d', "dest")
             .valueName("<path>")
-            .action((d, c) => c.copy(cmd = Some(ServeCommand(dst = Some(d.toPath)))))
+            .action((d, c) => c.copy(cmd = Some(ServeCommand(dst = d.toPath))))
             .text("destination directory path"),
           opt[File]('s', "source")
             .valueName("<path>")
@@ -85,17 +85,16 @@ object Main extends App {
   }
 
   OParser.parse(parser, args, Config()) match {
-    case Some(Config(_, _, Some(BuildCommand(src, dst)))) =>
+    case Some(Config(_, _, Some(build @ BuildCommand(src, dst)))) =>
       if (!isDir(src)) problem(s"not a readable directory: $src")
-//      if (!canCreate(dst.get))
-    case Some(conf) => app(conf)
-    case _          =>
-  }
 
-  def app(c: Config): Unit = {
+      val d = Option(dst) getOrElse (src resolve "public")
 
-    println(c)
+      if (!canCreate(d)) problem(s"not a writable directory: $d")
 
+      App(build.copy(dst = d))
+    case Some(_) => println(OParser.usage(parser))
+    case _       =>
   }
 
 }
