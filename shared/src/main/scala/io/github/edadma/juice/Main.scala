@@ -75,17 +75,6 @@ object Main extends App {
     )
   }
 
-  def isFile(p: Path) = Files.isRegularFile(p) && Files.isReadable(p)
-
-  def isDir(p: Path) = Files.isDirectory(p) && Files.isReadable(p)
-
-  def canCreate(p: Path) = Files.isDirectory(p.getParent) && Files.isWritable(p.getParent)
-
-  def problem(msg: String): Nothing = {
-    Console.err.println(msg)
-    sys.exit(1)
-  }
-
   OParser.parse(parser, args, Config()) match {
     case Some(Config(_, _, Some(build @ BuildCommand(src, dst)))) =>
       if (!isDir(src)) problem(s"not a readable directory: $src")
