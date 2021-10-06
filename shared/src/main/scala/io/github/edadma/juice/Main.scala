@@ -3,17 +3,9 @@ package io.github.edadma.juice
 import java.io.File
 import scopt.OParser
 
-import java.nio.file.{Files, Path, Paths}
+import java.nio.file.{Files, Path}
 
 object Main extends App {
-
-  trait Command
-
-  case class BuildCommand(src: Path = Paths.get("."), dst: Path = null) extends Command
-
-  case class ServeCommand(src: Path = Paths.get("."), dst: Path = null) extends Command
-
-  case object ConfigCommand extends Command
 
   case class Config(verbose: Boolean = false, baseurl: Option[String] = None, cmd: Option[Command] = None)
 
@@ -92,7 +84,7 @@ object Main extends App {
 
       if (!canCreate(d)) problem(s"not a writable directory: $d")
 
-      App(build.copy(dst = d))
+      App.run(build.copy(dst = d))
     case Some(_) => println(OParser.usage(parser))
     case _       =>
   }

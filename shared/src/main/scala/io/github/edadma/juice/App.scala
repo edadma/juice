@@ -1,11 +1,12 @@
 package io.github.edadma.juice
 
-import io.github.edadma.juice.Main.Command
+import java.nio.file.{Files, Path, Paths}
 
 object App {
 
-  def apply(c: Command): Unit = {
-    println(c)
+  val run: PartialFunction[Command, Unit] = {
+    case BuildCommand(src, dst) =>
+      println(s"build src = $src, dst = $dst")
   }
 
 }
