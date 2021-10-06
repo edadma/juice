@@ -34,12 +34,15 @@ object Main extends App {
 
   val conf = ConfigFactory.parseString(
     """
-      |baseurl = 123//"http://localhost:8080"
+      |baseurl = "http://localhost:8080"
+      |layouts = [.]
       |""".stripMargin /*,
     ConfigParseOptions.defaults.setSyntax(ConfigSyntax.PROPERTIES)*/
   )
 
-  println(conf.getAnyRef("baseurl"), conf.getAnyRef("baseurl").getClass)
+  println(conf.getAnyRef("layouts"), conf.getAnyRef("layouts").getClass)
+
+//  val c1 = conf.withValue("layouts", ConfigValueFactory.fromAnyRef())
   //  val conf = ConfigFactory.load
   //  println(conf)
 
