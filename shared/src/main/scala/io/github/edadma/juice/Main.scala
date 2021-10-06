@@ -3,8 +3,6 @@ package io.github.edadma.juice
 import java.io.File
 import scopt.OParser
 
-import java.nio.file.{Files, Path}
-
 object Main extends App {
 
   case class Config(verbose: Boolean = false, baseurl: Option[String] = None, cmd: Option[Command] = None)
@@ -76,7 +74,7 @@ object Main extends App {
   }
 
   OParser.parse(parser, args, Config()) match {
-    case Some(Config(_, _, Some(build @ BuildCommand(src, dst)))) =>
+    case Some(Config(_, _, Some(build@BuildCommand(src, dst)))) =>
       if (!isDir(src)) problem(s"not a readable directory: $src")
 
       val d = Option(dst) getOrElse (src resolve "public")
@@ -85,8 +83,8 @@ object Main extends App {
 
       App.run(build.copy(dst = d))
     case Some(Config(_, _, Some(cmd))) => App run cmd
-    case Some(_)                       => println(OParser.usage(parser))
-    case _                             =>
+    case Some(_) => println(OParser.usage(parser))
+    case _ =>
   }
 
 }
