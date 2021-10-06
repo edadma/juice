@@ -1,17 +1,19 @@
 package io.github.edadma.juice
 
+import java.nio.file.{Files, Path}
+
+import scala.collection.immutable.VectorMap
+import scala.jdk.CollectionConverters._
+import scala.language.postfixOps
+
 import io.github.edadma.cross_platform.readFile
+
 import org.ekrich.config.{
   Config,
   ConfigFactory,
   ConfigParseOptions,
   ConfigSyntax,
 }
-
-import java.nio.file.{Files, Path, Paths}
-import scala.collection.immutable.VectorMap
-import scala.jdk.CollectionConverters._
-import scala.language.postfixOps
 
 object App {
 
