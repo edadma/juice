@@ -5,6 +5,8 @@ import io.github.edadma.commonmark
 import io.github.edadma.commonmark.{CommonMarkParser, Util}
 import org.ekrich.config._
 
+import scala.jdk.CollectionConverters._
+
 import java.nio.file.Paths
 
 object Main extends App {
