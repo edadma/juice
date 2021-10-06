@@ -21,17 +21,17 @@ object App {
 
   val defaultProperties: Config = ConfigFactory.parseString(
     """
-      |title = Untitled
-      |baseurl = http://localhost:8000
+      |title =        Untitled
+      |baseurl =      http://localhost:8000
       |languagecode = en-us
-      |contentdir = .
-      |layoutdir = .
+      |contentdir =   .
+      |layoutdir =    .
       |shortcodedir = .
-      |partialdir = .
-      |staticdir = .
-      |resourcedir = resources
-      |themesdir = themes
-      |cachedir = /tmp/juice_cache
+      |partialdir =   .
+      |staticdir =    .
+      |resourcedir =  resources
+      |themesdir =    themes
+      |cachedir =     /tmp/juice_cache
       |ignorefiles =
       |""".stripMargin,
     ConfigParseOptions.defaults.setSyntax(ConfigSyntax.PROPERTIES)
@@ -95,13 +95,13 @@ object App {
         case "conf" | "hocon"       => ConfigParseOptions.defaults.setSyntax(ConfigSyntax.CONF)
         case "props" | "properties" => ConfigParseOptions.defaults.setSyntax(ConfigSyntax.PROPERTIES)
       }
+
     ConfigFactory.parseString(readFile(file), syntax)
   }
 
-  def config(src: Path): Config = {
+  def config(src: Path): Config =
     listFiles(src, "json", "conf", "properties", "props", "hocon").foldLeft(defaultProperties) {
       case (c, p) => readConfig(p) withFallback c
     }
-  }
 
 }
