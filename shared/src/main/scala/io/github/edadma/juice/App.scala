@@ -81,7 +81,6 @@ object App {
             case _ => problem(s"expected front matter: $p")
           }
 
-        println(123)
         ContentFile(yaml(data), lines map (_ :+ '\n') mkString)
       }
 
