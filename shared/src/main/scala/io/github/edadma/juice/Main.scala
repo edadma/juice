@@ -74,17 +74,9 @@ object Main extends App {
   }
 
   OParser.parse(parser, args, Config()) match {
-    case Some(Config(_, _, Some(build@BuildCommand(src, dst)))) =>
-      if (!isDir(src)) problem(s"not a readable directory: $src")
-
-      val d = Option(dst) getOrElse (src resolve "public")
-
-      if (!canCreate(d)) problem(s"not a writable directory: $d")
-
-      App.run(build.copy(dst = d))
     case Some(Config(_, _, Some(cmd))) => App run cmd
-    case Some(_) => println(OParser.usage(parser))
-    case _ =>
+    case Some(_)                       => println(OParser.usage(parser))
+    case _                             =>
   }
 
 }

@@ -14,34 +14,47 @@ object App {
 
   val defaultProperties: Config = ConfigFactory.parseString(
     """
-      |title =        Untitled
-      |baseurl =      http://localhost:8000
-      |languagecode = en-us
-      |contentdir =   .
-      |layoutdir =    .
-      |shortcodedir = .
-      |partialdir =   .
-      |staticdir =    .
-      |resourcedir =  resources
-      |themesdir =    themes
-      |cachedir =     /tmp/juice_cache
-      |ignorefiles =
+      |baseurl =         "http://localhost:8000"
+      |title =           Untitled
+      |languagecode =    en-us
+      |contentdir =      .
+      |layoutdir =       .
+      |shortcodedir =    .
+      |partialdir =      .
+      |staticdir =       .
+      |resourcedir =     resources
+      |themesdir =       themes
+      |cachedir =        /tmp/juice_cache
+      |ignorefiles =     []
       |""".stripMargin,
-    ConfigParseOptions.defaults.setSyntax(ConfigSyntax.PROPERTIES)
+    ConfigParseOptions.defaults.setSyntax(ConfigSyntax.CONF)
   )
 
   val run: PartialFunction[Command, Unit] = {
     case BuildCommand(src, dst) =>
-      val conf = new ConfigWrapper(config(src))
+      val src1 = src.normalize.toAbsolutePath
+      val dst1 = (Option(dst) getOrElse (src1 resolve "public")).normalize.toAbsolutePath
 
-      processDir(src, dst, conf)
-    case ConfigCommand(src) => printConfig(config(src))
+      if (!isDir(src1)) problem(s"not a readable directory: $src1")
+      if (!canCreate(dst1)) problem(s"not a writable directory: $dst1")
+
+      if (!isDir(dst1))
+        Files.createDirectory(dst1)
+
+      val conf = new ConfigWrapper(config(src1))
+
+      processDir(src1, dst1, conf)
+    case ConfigCommand(src) =>
+      println("Site config:")
+
+      for ((k, v) <- configObject(config(src).root))
+        println(s"  $k = ${renderValue(v)}")
   }
 
   case class ContentFile(data: Any, content: String)
 
   def processDir(src: Path, dst: Path, conf: ConfigWrapper): Unit = {
-    val md =
+    val mds =
       listFiles(src, "md", "markdown") map { p =>
         val s = readFile(p.toString)
         val lines = scala.io.Source.fromString(s).getLines()
@@ -61,17 +74,18 @@ object App {
                       line()
                   }
                 } else
-                  problem(s"unexpected end of file which reading front matter: $p")
+                  problem(s"unexpected end of file while reading front matter: $p")
 
               line()
               buf.toString
-            case _ => ""
+            case _ => problem(s"expected front matter: $p")
           }
 
+        println(123)
         ContentFile(yaml(data), lines map (_ :+ '\n') mkString)
       }
 
-    println(md)
+    println(mds)
   }
 
   def renderValue(v: Any): String =
@@ -83,10 +97,6 @@ object App {
       case l: List[_]         => l map renderValue mkString ("[", ", ", "]")
       case m: VectorMap[_, _] => m map { case (k, v) => s"$k: ${renderValue(v)}" } mkString ("{", ", ", "}")
     }
-
-  def printConfig(c: Config): Unit =
-    for ((k, v) <- configObject(c.root))
-      println(s"$k = ${renderValue(v)}")
 
   def listFiles(dir: Path, exts: String*): List[Path] = {
     val suffixes = exts map ('.' +: _)

@@ -32,7 +32,7 @@ lazy val juice = crossProject(JSPlatform, JVMPlatform, NativePlatform).in(file("
     ),
     publishMavenStyle := true,
     Test / publishArtifact := false,
-    licenses += "ISC" -> url("https://opensource.org/licenses/ISC")
+    licenses += "ISC" -> url("https://opensource.org/licenses/ISC"),
   ).
   jvmSettings(
     libraryDependencies += "org.scala-js" %% "scalajs-stubs" % "1.0.0" % "provided",
