@@ -43,7 +43,7 @@ object App {
 
       val conf = new ConfigWrapper(config(src1))
 
-      processDir(src1, dst1, conf)
+      println(processDir(src1, dst1))
     case ConfigCommand(src) =>
       println("Site config:")
 
@@ -51,11 +51,14 @@ object App {
         println(s"  $k = ${renderValue(v)}")
   }
 
-  case class ContentDir(files: List[ContentFile], data: Any)
+  case class ContentDir(name: String, dirs: List[ContentDir], files: List[ContentFile], data: Any)
+
+  case class DataFile(name: String, data: Any)
 
   case class ContentFile(name: String, data: Any, content: String)
 
-  def processDir(src: Path, dst: Path, conf: ConfigWrapper): Unit = {
+  def processDir(src: Path, dst: Path): ContentDir = {
+    val dirs = listDirs(src, dst) map (processDir(_, dst))
     val mds =
       listFiles(src, "MD", "md", "markdown") map { p =>
         val s = readFile(p.toString)
@@ -87,9 +90,10 @@ object App {
       }
     val data =
       listFiles(src, "YML", "YAML", "yml", "yaml") map { p =>
-        }
+        withoutExtension(p.getFileName.toString) -> yaml(readFile(p.toString))
+      } toMap
 
-    println(mds)
+    ContentDir(withoutExtension(src.getFileName.toString), dirs, mds, data)
   }
 
   def renderValue(v: Any): String =
@@ -108,6 +112,9 @@ object App {
     Files.list(dir).iterator.asScala.toList filter (p =>
       isFile(p) && (suffixes.isEmpty || suffixes.exists(p.getFileName.toString endsWith _))) sortBy (_.getFileName.toString)
   }
+
+  def listDirs(dir: Path, exclude: Path*): List[Path] =
+    Files.list(dir).iterator.asScala.toList filter (p => !exclude.contains(p) && isDir(p))
 
   def extension(filename: String): String =
     filename lastIndexOf '.' match {
