@@ -12,24 +12,6 @@ import scala.annotation.tailrec
 
 object App {
 
-  val defaultProperties: Config = ConfigFactory.parseString(
-    """
-      |baseurl =         "http://localhost:8000"
-      |title =           Untitled
-      |languagecode =    en-us
-      |contentdir =      .
-      |layoutdir =       .
-      |shortcodedir =    .
-      |partialdir =      .
-      |staticdir =       .
-      |resourcedir =     resources
-      |themesdir =       themes
-      |cachedir =        /tmp/juice_cache
-      |ignorefiles =     []
-      |""".stripMargin,
-    ConfigParseOptions.defaults.setSyntax(ConfigSyntax.CONF)
-  )
-
   val run: PartialFunction[Command, Unit] = {
     case BuildCommand(src, dst) =>
       val src1 = src.normalize.toAbsolutePath
@@ -41,17 +23,17 @@ object App {
       if (!isDir(dst1))
         Files.createDirectory(dst1)
 
-      val conf = new ConfigWrapper(config(src1))
+      val conf = new ConfigWrapper(config(src1, "basic"))
 
       println(processDir(src1, dst1))
     case ConfigCommand(src) =>
       println("Site config:")
 
-      for ((k, v) <- configObject(config(src).root))
+      for ((k, v) <- configObject(config(src, "basic").root))
         println(s"  $k = ${renderValue(v)}")
   }
 
-  case class ContentDir(name: String, dirs: List[ContentDir], files: List[ContentFile], data: Any)
+  case class ContentDir(name: String, dirs: List[ContentDir], contentFiles: List[ContentFile], data: Any)
 
   case class DataFile(name: String, data: Any)
 
@@ -140,9 +122,14 @@ object App {
     ConfigFactory.parseString(readFile(file), syntax)
   }
 
-  def config(src: Path): Config =
-    listFiles(src, "json", "conf", "properties", "props", "hocon").foldLeft(defaultProperties) {
-      case (c, p) => readConfig(p) withFallback c
+  def config(src: Path, base: String): Config = {
+    BaseConfig(base) match {
+      case Some(b) =>
+        listFiles(src, "json", "conf", "properties", "props", "hocon").foldLeft(b) {
+          case (c, p) => readConfig(p) withFallback c
+        }
+      case None => problem(s"unknown base configuration: $base")
     }
+  }
 
 }
