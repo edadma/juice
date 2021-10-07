@@ -51,11 +51,13 @@ object App {
         println(s"  $k = ${renderValue(v)}")
   }
 
-  case class ContentFile(data: Any, content: String)
+  case class ContentDir(files: List[ContentFile], data: Any)
+
+  case class ContentFile(name: String, data: Any, content: String)
 
   def processDir(src: Path, dst: Path, conf: ConfigWrapper): Unit = {
     val mds =
-      listFiles(src, "md", "markdown") map { p =>
+      listFiles(src, "MD", "md", "markdown") map { p =>
         val s = readFile(p.toString)
         val lines = scala.io.Source.fromString(s).getLines()
         val data =
@@ -81,8 +83,11 @@ object App {
             case _ => problem(s"expected front matter: $p")
           }
 
-        ContentFile(yaml(data), lines map (_ :+ '\n') mkString)
+        ContentFile(withoutExtension(p.getFileName.toString), yaml(data), lines map (_ :+ '\n') mkString)
       }
+    val data =
+      listFiles(src, "YML", "YAML", "yml", "yaml") map { p =>
+        }
 
     println(mds)
   }
@@ -108,6 +113,12 @@ object App {
     filename lastIndexOf '.' match {
       case -1  => ""
       case dot => filename substring (dot + 1)
+    }
+
+  def withoutExtension(filename: String): String =
+    filename lastIndexOf '.' match {
+      case -1  => filename
+      case dot => filename substring (0, dot)
     }
 
   def readConfig(path: Path): Config = {
