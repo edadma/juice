@@ -131,7 +131,8 @@ object App {
                                              templateParser.parse(readFile(p.toString)))
         }
 
-      if (!dir.startsWith(layouts) && !dir.startsWith(partials) && !dir.startsWith(shortcodes))
+      if ((src == layouts || !dir.startsWith(layouts)) && (src == partials || !dir.startsWith(partials)) && (src == shortcodes || !dir
+            .startsWith(shortcodes)))
         includeExts(listing, "html", "css", "scss", "sass") foreach { p =>
           otherTemplates += TemplateFile(p.getParent,
                                          withoutExtension(p.getFileName.toString),
