@@ -52,6 +52,8 @@ class ConfigWrapper(c: Config) extends Dynamic {
 
   def path: PathDynamic.type = PathDynamic
 
+  def paths: PathsDynamic.type = PathsDynamic
+
   def selectDynamic(name: String): String = c.getString(name)
 
 }

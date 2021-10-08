@@ -9,6 +9,7 @@ import io.github.edadma.squiggly.platformSpecific.yaml
 import org.ekrich.config.{Config, ConfigFactory, ConfigParseOptions, ConfigSyntax}
 
 import scala.annotation.tailrec
+import scala.collection.mutable.ListBuffer
 
 object App {
 
@@ -24,11 +25,8 @@ object App {
         Files.createDirectory(dst1)
 
       val conf = new ConfigWrapper(config(src1, "basic"))
-      val content = src1 resolve conf.path.content
 
-      if (!isDir(src1)) problem(s"can't read content directory: $content")
-
-      println(processDir(content, dst1))
+      process(src1, dst1, conf)
     case ConfigCommand(src) =>
       println("Site config:")
 
@@ -40,12 +38,24 @@ object App {
 
   case class DataFile(name: String, data: Any)
 
-  case class ContentFile(name: String, data: Any, content: String)
+  case class ContentFile(parent: Path, name: String, data: Any, content: String)
 
-  def processDir(src: Path, dst: Path): ContentDir = {
-    val dirs = listDirs(src, dst) map (processDir(_, dst))
-    val mds =
-      listFiles(src, "MD", "md", "markdown") map { p =>
+  def process(src: Path, dst: Path, conf: ConfigWrapper) = {
+    val content = src resolve conf.path.content
+    val layouts = src resolve conf.paths.layouts
+    val partials = src resolve conf.paths.partials
+    val shortcodes = src resolve conf.paths.shortcodes
+
+    val contentFiles = new ListBuffer[ContentFile]
+    val dataFiles = new ListBuffer[DataFile]
+    //    val layoutFiles =
+
+    if (!isDir(content)) problem(s"can't read content directory: $content")
+
+    def processDir(dir: Path): Unit = {
+      listDirs(dir, dst) foreach processDir
+
+      listFiles(src, "MD", "md", "markdown") foreach { p =>
         val s = readFile(p.toString)
         val lines = scala.io.Source.fromString(s).getLines()
         val data =
@@ -71,14 +81,18 @@ object App {
             case _ => problem(s"expected front matter: $p")
           }
 
-        ContentFile(withoutExtension(p.getFileName.toString), yaml(data), lines map (_ :+ '\n') mkString)
+        contentFiles += ContentFile(p.getParent,
+                                    withoutExtension(p.getFileName.toString),
+                                    yaml(data),
+                                    lines map (_ :+ '\n') mkString)
       }
-    val data =
-      listFiles(src, "YML", "YAML", "yml", "yaml") map { p =>
-        withoutExtension(p.getFileName.toString) -> yaml(readFile(p.toString))
-      } toMap
 
-    ContentDir(withoutExtension(src.getFileName.toString), dirs, mds, data)
+      listFiles(src, "YML", "YAML", "yml", "yaml") foreach (p =>
+        dataFiles += DataFile(withoutExtension(p.getFileName.toString), yaml(readFile(p.toString))))
+
+    }
+
+    processDir(src)
   }
 
   def renderValue(v: Any): String =
