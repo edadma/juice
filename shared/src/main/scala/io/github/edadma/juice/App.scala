@@ -5,6 +5,7 @@ import scala.collection.immutable.VectorMap
 import scala.jdk.CollectionConverters._
 import scala.language.postfixOps
 import io.github.edadma.cross_platform.readFile
+import io.github.edadma.squiggly.TemplateAST
 import io.github.edadma.squiggly.platformSpecific.yaml
 import org.ekrich.config.{Config, ConfigFactory, ConfigParseOptions, ConfigSyntax}
 
@@ -34,11 +35,11 @@ object App {
         println(s"  $k = ${renderValue(v)}")
   }
 
-  case class ContentDir(name: String, dirs: List[ContentDir], contentFiles: List[ContentFile], data: Any)
-
-  case class DataFile(name: String, data: Any)
+  case class DataFile(parent: Path, name: String, data: Any)
 
   case class ContentFile(parent: Path, name: String, data: Any, content: String)
+
+  case class TemplateFile(parent: Path, name: String, template: TemplateAST)
 
   def process(src: Path, dst: Path, conf: ConfigWrapper) = {
     val content = src resolve conf.path.content
@@ -48,6 +49,8 @@ object App {
 
     val contentFiles = new ListBuffer[ContentFile]
     val dataFiles = new ListBuffer[DataFile]
+    val renderedTemplates = new ListBuffer[TemplateFile]
+
     //    val layoutFiles =
 
     if (!isDir(content)) problem(s"can't read content directory: $content")
@@ -92,7 +95,7 @@ object App {
         }
 
       listFiles(src, "YML", "YAML", "yml", "yaml") foreach (p =>
-        dataFiles += DataFile(withoutExtension(p.getFileName.toString), yaml(readFile(p.toString))))
+        dataFiles += DataFile(p.getParent, withoutExtension(p.getFileName.toString), yaml(readFile(p.toString))))
 
     }
 
