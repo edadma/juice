@@ -5,7 +5,7 @@ import scala.collection.immutable.VectorMap
 import scala.jdk.CollectionConverters._
 import scala.language.postfixOps
 import io.github.edadma.cross_platform.readFile
-import io.github.edadma.squiggly.TemplateAST
+import io.github.edadma.squiggly.{TemplateAST, TemplateParser}
 import io.github.edadma.squiggly.platformSpecific.yaml
 import org.ekrich.config.{Config, ConfigFactory, ConfigParseOptions, ConfigSyntax}
 
@@ -13,6 +13,8 @@ import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
 
 object App {
+
+  lazy val templateParser: TemplateParser = TemplateParser.default
 
   val run: PartialFunction[Command, Unit] = {
     case BuildCommand(src, dst) =>
@@ -41,25 +43,25 @@ object App {
 
   case class TemplateFile(parent: Path, name: String, template: TemplateAST)
 
-  def process(src: Path, dst: Path, conf: ConfigWrapper) = {
+  def process(src: Path, dst: Path, conf: ConfigWrapper): Unit = {
     val content = src resolve conf.path.content
-    val layouts = src resolve conf.paths.layouts
-    val partials = src resolve conf.paths.partials
-    val shortcodes = src resolve conf.paths.shortcodes
+//    val layouts = src resolve conf.paths.layouts
+//    val partials = src resolve conf.paths.partials
+//    val shortcodes = src resolve conf.paths.shortcodes
 
     val contentFiles = new ListBuffer[ContentFile]
     val dataFiles = new ListBuffer[DataFile]
-    val renderedTemplates = new ListBuffer[TemplateFile]
-
-    //    val layoutFiles =
+    val templateFiles = new ListBuffer[TemplateFile]
 
     if (!isDir(content)) problem(s"can't read content directory: $content")
 
     def processDir(dir: Path): Unit = {
-      listDirs(dir, dst) foreach processDir
+      val listing = list(dir)
+
+      excludeDirs(listing, dst) foreach processDir
 
       if (dir startsWith content)
-        listFiles(src, "MD", "md", "markdown") foreach { p =>
+        includeExts(listing, "MD", "md", "markdown") foreach { p =>
           val s = readFile(p.toString)
           val lines = scala.io.Source.fromString(s).getLines()
           val (first, data) = {
@@ -94,9 +96,22 @@ object App {
                                       (if (first == "---") "" else first :+ '\n') ++ (lines map (_ :+ '\n') mkString))
         }
 
-      listFiles(src, "YML", "YAML", "yml", "yaml") foreach (p =>
+      includeExts(listing, "YML", "YAML", "yml", "yaml") foreach (p =>
         dataFiles += DataFile(p.getParent, withoutExtension(p.getFileName.toString), yaml(readFile(p.toString))))
 
+      includeExts(listing, "html", "css", "scss", "sass") foreach { p =>
+        templateFiles += TemplateFile(p.getParent,
+                                      withoutExtension(p.getFileName.toString),
+                                      templateParser.parse(readFile(p.toString)))
+      }
+
+      Files.createDirectories(dst resolve (src relativize dir))
+      excludeExts(listing, "html", "css", "scss", "sass", "YML", "YAML", "yml", "yaml", "MD", "md", "markdown") foreach {
+        p =>
+          val target = dst resolve (src relativize p)
+
+          Files.copy(p, target)
+      }
     }
 
     processDir(src)
@@ -112,15 +127,24 @@ object App {
       case m: VectorMap[_, _] => m map { case (k, v) => s"$k: ${renderValue(v)}" } mkString ("{", ", ", "}")
     }
 
-  def listFiles(dir: Path, exts: String*): List[Path] = {
+  def list(dir: Path): List[Path] = Files.list(dir).iterator.asScala.toList
+
+  def includeExts(listing: List[Path], exts: String*): List[Path] = {
     val suffixes = exts map ('.' +: _)
 
-    Files.list(dir).iterator.asScala.toList filter (p =>
-      isFile(p) && (suffixes.isEmpty || suffixes.exists(p.getFileName.toString endsWith _))) sortBy (_.getFileName.toString)
+    listing filter (p => isFile(p) && (suffixes.isEmpty || suffixes.exists(p.getFileName.toString endsWith _))) sortBy (_.getFileName.toString)
   }
 
-  def listDirs(dir: Path, exclude: Path*): List[Path] =
-    Files.list(dir).iterator.asScala.toList filter (p => !exclude.contains(p) && isDir(p))
+  def excludeExts(listing: List[Path], exts: String*): List[Path] = {
+    require(exts.nonEmpty)
+
+    val suffixes = exts map ('.' +: _)
+
+    listing filter (p => isFile(p) && (!suffixes.exists(p.getFileName.toString endsWith _)))
+  }
+
+  def excludeDirs(listing: List[Path], exclude: Path*): List[Path] =
+    listing filter (p => isDir(p) && !exclude.contains(p))
 
   def extension(filename: String): String =
     filename lastIndexOf '.' match {
@@ -149,7 +173,7 @@ object App {
   def config(src: Path, base: String): Config = {
     BaseConfig(base) match {
       case Some(b) =>
-        listFiles(src, "json", "conf", "properties", "props", "hocon").foldLeft(b) {
+        includeExts(list(src), "json", "conf", "properties", "props", "hocon").foldLeft(b) {
           case (c, p) => readConfig(p) withFallback c
         }
       case None => problem(s"unknown base configuration: $base")

@@ -8,12 +8,12 @@ import java.nio.file.{Files, Path}
 import scala.collection.mutable
 
 class Loader(paths: Seq[Path],
-             functions: Map[String, BuiltinFunction],
-             namespaces: Map[String, Map[String, BuiltinFunction]]) {
+             functions: Map[String, TemplateFunction],
+             namespaces: Map[String, Map[String, TemplateFunction]]) {
 
-  val map = new mutable.HashMap[String, ParserAST]
+  val map = new mutable.HashMap[String, TemplateAST]
 
-  def find(name: String): Option[ParserAST] =
+  def find(name: String): Option[TemplateAST] =
     map get name match {
       case None =>
         for (d <- paths)
@@ -27,7 +27,7 @@ class Loader(paths: Seq[Path],
                     case -1  => filename == name
                     case dot => filename.substring(0, dot) == name
                   }) {
-                val t = new Parser("{{", "}}", functions, namespaces).parse(readFile(path))
+                val t = new TemplateParser("{{", "}}", functions, namespaces).parse(readFile(path))
 
                 map(name) = t
                 return Some(t)

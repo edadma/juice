@@ -1,13 +1,13 @@
 package io.github.edadma.juice
 
 import io.github.edadma.char_reader._
-import io.github.edadma.squiggly
+import io.github.edadma.squiggly._
 
 import java.io.{ByteArrayOutputStream, PrintStream}
 import scala.annotation.tailrec
 import scala.language.postfixOps
 
-class Preprocessor(startDelim: String, endDelim: String, shortcodes: Loader, renderer: squiggly.Renderer) {
+class Preprocessor(startDelim: String, endDelim: String, shortcodes: Loader, renderer: TemplateRenderer) {
 
   def process(content: String): String = {
     val buf = new StringBuilder
