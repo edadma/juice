@@ -28,12 +28,8 @@ object App {
         Files.createDirectory(dst1)
 
       val conf = new ConfigWrapper(config(src1, "basic"))
-      val content = src1 resolve conf.path.content.normalize
-      //    val layouts = src resolve conf.paths.layouts
-      //    val partials = src resolve conf.paths.partials
-      //    val shortcodes = src resolve conf.paths.shortcodes
 
-      val site = process(src1, dst1, content)
+      val site = process(src1, dst1, conf)
 
       pprint.pprintln(site)
     case ConfigCommand(src) =>
@@ -43,18 +39,30 @@ object App {
         println(s"  $k = ${renderValue(v)}")
   }
 
-  case class DataFile(parent: Path, name: String, data: Any)
+  case class Data(parent: Path, name: String, data: Any)
 
   case class ContentFile(parent: Path, name: String, data: Any, content: String)
 
   case class TemplateFile(parent: Path, name: String, template: TemplateAST)
 
-  case class Site(content: List[ContentFile], data: List[DataFile], template: List[TemplateFile])
+  case class Site(content: List[ContentFile],
+                  data: List[Data],
+                  layoutTemplates: List[TemplateFile],
+                  partialTemplates: List[TemplateFile],
+                  shortcodeTemplates: List[TemplateFile],
+                  otherTemplates: List[TemplateFile])
 
-  def process(src: Path, dst: Path, content: Path): Site = {
+  def process(src: Path, dst: Path, conf: ConfigWrapper): Site = {
+    val content = src resolve conf.path.content.normalize
+    val layouts = src resolve conf.path.layouts.normalize
+    val partials = src resolve conf.path.partials.normalize
+    val shortcodes = src resolve conf.path.shortcodes.normalize
     val contentFiles = new ListBuffer[ContentFile]
-    val dataFiles = new ListBuffer[DataFile]
-    val templateFiles = new ListBuffer[TemplateFile]
+    val dataFiles = new ListBuffer[Data]
+    val layoutTemplates = new ListBuffer[TemplateFile]
+    val partialTemplates = new ListBuffer[TemplateFile]
+    val shortcodeTemplates = new ListBuffer[TemplateFile]
+    val otherTemplates = new ListBuffer[TemplateFile]
 
     if (!isDir(content)) problem(s"can't read content directory: $content")
 
@@ -100,13 +108,35 @@ object App {
         }
 
       includeExts(listing, "YML", "YAML", "yml", "yaml") foreach (p =>
-        dataFiles += DataFile(p.getParent, withoutExtension(p.getFileName.toString), yaml(readFile(p.toString))))
+        dataFiles += Data(p.getParent, withoutExtension(p.getFileName.toString), yaml(readFile(p.toString))))
 
-      includeExts(listing, "html", "css", "scss", "sass") foreach { p =>
-        templateFiles += TemplateFile(p.getParent,
-                                      withoutExtension(p.getFileName.toString),
-                                      templateParser.parse(readFile(p.toString)))
-      }
+      if (dir startsWith layouts)
+        includeExts(listing, "html", "sq") foreach { p =>
+          layoutTemplates += TemplateFile(p.getParent,
+                                          withoutExtension(p.getFileName.toString),
+                                          templateParser.parse(readFile(p.toString)))
+        }
+
+      if (dir startsWith partials)
+        includeExts(listing, "html", "sq") foreach { p =>
+          partialTemplates += TemplateFile(p.getParent,
+                                           withoutExtension(p.getFileName.toString),
+                                           templateParser.parse(readFile(p.toString)))
+        }
+
+      if (dir startsWith shortcodes)
+        includeExts(listing, "html", "sq") foreach { p =>
+          shortcodeTemplates += TemplateFile(p.getParent,
+                                             withoutExtension(p.getFileName.toString),
+                                             templateParser.parse(readFile(p.toString)))
+        }
+
+      if (!dir.startsWith(layouts) && !dir.startsWith(partials) && !dir.startsWith(shortcodes))
+        includeExts(listing, "html", "css", "scss", "sass") foreach { p =>
+          otherTemplates += TemplateFile(p.getParent,
+                                         withoutExtension(p.getFileName.toString),
+                                         templateParser.parse(readFile(p.toString)))
+        }
 
       Files.createDirectories(dst resolve (src relativize dir))
       excludeExts(listing,
@@ -132,7 +162,12 @@ object App {
     }
 
     processDir(src)
-    Site(contentFiles.toList, dataFiles.toList, templateFiles.toList)
+    Site(contentFiles.toList,
+         dataFiles.toList,
+         layoutTemplates.toList,
+         partialTemplates.toList,
+         shortcodeTemplates.toList,
+         otherTemplates.toList)
   }
 
   def renderValue(v: Any): String =
