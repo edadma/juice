@@ -45,9 +45,9 @@ object App {
 
   def process(src: Path, dst: Path, conf: ConfigWrapper): Unit = {
     val content = src resolve conf.path.content
-//    val layouts = src resolve conf.paths.layouts
-//    val partials = src resolve conf.paths.partials
-//    val shortcodes = src resolve conf.paths.shortcodes
+    //    val layouts = src resolve conf.paths.layouts
+    //    val partials = src resolve conf.paths.partials
+    //    val shortcodes = src resolve conf.paths.shortcodes
 
     val contentFiles = new ListBuffer[ContentFile]
     val dataFiles = new ListBuffer[DataFile]
@@ -106,11 +106,25 @@ object App {
       }
 
       Files.createDirectories(dst resolve (src relativize dir))
-      excludeExts(listing, "html", "css", "scss", "sass", "YML", "YAML", "yml", "yaml", "MD", "md", "markdown") foreach {
-        p =>
-          val target = dst resolve (src relativize p)
+      excludeExts(listing,
+                  "html",
+                  "css",
+                  "scss",
+                  "sass",
+                  "YML",
+                  "YAML",
+                  "yml",
+                  "yaml",
+                  "MD",
+                  "md",
+                  "markdown",
+                  "props",
+                  "properties",
+                  "conf",
+                  "hocon") foreach { p =>
+        val target = dst resolve (src relativize p)
 
-          Files.copy(p, target)
+        Files.copy(p, target)
       }
     }
 
