@@ -1,20 +1,22 @@
 package io.github.edadma.juice
 
-import java.nio.file.{Files, Path}
+import java.nio.file.{CopyOption, Files, Path, StandardCopyOption}
 import scala.collection.immutable.VectorMap
 import scala.jdk.CollectionConverters._
 import scala.language.postfixOps
 import io.github.edadma.cross_platform.readFile
-import io.github.edadma.squiggly.{TemplateAST, TemplateParser}
+import io.github.edadma.squiggly.{TemplateAST, TemplateParser, TemplateRenderer}
 import io.github.edadma.squiggly.platformSpecific.yaml
 import org.ekrich.config.{Config, ConfigFactory, ConfigParseOptions, ConfigSyntax}
 
+import java.io.FileOutputStream
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
 
 object App {
 
   lazy val templateParser: TemplateParser = TemplateParser.default
+  lazy val templateRenderer: TemplateRenderer = TemplateRenderer.default
 
   val run: PartialFunction[Command, Unit] = {
     case BuildCommand(src, dst) =>
@@ -28,10 +30,23 @@ object App {
         Files.createDirectory(dst1)
 
       val conf = new ConfigWrapper(config(src1, "basic"))
-
       val site = process(src1, dst1, conf)
 
-      pprint.pprintln(site)
+//      println(site.layoutTemplates)
+
+      for (page @ ContentFile(outdir, name, data, content) <- site.content) {
+        println(page)
+        site.layoutTemplates find (_.name == "page") match {
+          case Some(TemplateFile(_, _, t)) =>
+            val out = new FileOutputStream(outdir resolve s"$name.html" toString)
+
+            templateRenderer.render(page, t, out)
+            out.close()
+          case None => problem(s"'page' layout not found for laying out '$name'")
+        }
+      }
+
+    //      pprint.pprintln(site)
     case ConfigCommand(src) =>
       println("Site config:")
 
@@ -41,7 +56,7 @@ object App {
 
   case class Data(parent: Path, name: String, data: Any)
 
-  case class ContentFile(parent: Path, name: String, data: Any, content: String)
+  case class ContentFile(outdir: Path, name: String, data: Any, content: String)
 
   case class TemplateFile(parent: Path, name: String, template: TemplateAST)
 
@@ -101,10 +116,13 @@ object App {
             }
           }
 
-          contentFiles += ContentFile(p.getParent,
+          val outdir = dst resolve (content relativize p.getParent)
+
+          contentFiles += ContentFile(outdir,
                                       withoutExtension(p.getFileName.toString),
                                       yaml(data),
-                                      (if (first == "---") "" else first :+ '\n') ++ (lines map (_ :+ '\n') mkString))
+                                      ((if (first == "---") ""
+                                        else first :+ '\n') ++ (lines map (_ :+ '\n') mkString)).trim)
         }
 
       includeExts(listing, "YML", "YAML", "yml", "yaml") foreach (p =>
@@ -134,7 +152,11 @@ object App {
       if ((src == layouts || !dir.startsWith(layouts)) && (src == partials || !dir.startsWith(partials)) && (src == shortcodes || !dir
             .startsWith(shortcodes)))
         includeExts(listing, "html", "css", "scss", "sass") foreach { p =>
-          otherTemplates += TemplateFile(p.getParent,
+          val outdir =
+            if (content == src) p.getParent
+            else dst resolve (content relativize p.getParent)
+
+          otherTemplates += TemplateFile(outdir,
                                          withoutExtension(p.getFileName.toString),
                                          templateParser.parse(readFile(p.toString)))
         }
@@ -142,6 +164,7 @@ object App {
       Files.createDirectories(dst resolve (src relativize dir))
       excludeExts(listing,
                   "html",
+                  "sq",
                   "css",
                   "scss",
                   "sass",
@@ -158,7 +181,7 @@ object App {
                   "hocon") foreach { p =>
         val target = dst resolve (src relativize p)
 
-        Files.copy(p, target)
+        Files.copy(p, target, StandardCopyOption.REPLACE_EXISTING)
       }
     }
 
