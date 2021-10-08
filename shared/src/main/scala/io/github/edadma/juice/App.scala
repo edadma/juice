@@ -55,37 +55,41 @@ object App {
     def processDir(dir: Path): Unit = {
       listDirs(dir, dst) foreach processDir
 
-      listFiles(src, "MD", "md", "markdown") foreach { p =>
-        val s = readFile(p.toString)
-        val lines = scala.io.Source.fromString(s).getLines()
-        val data =
-          lines.next() match {
-            case "---" =>
-              val buf = new StringBuilder
+      if (dir startsWith content)
+        listFiles(src, "MD", "md", "markdown") foreach { p =>
+          val s = readFile(p.toString)
+          val lines = scala.io.Source.fromString(s).getLines()
+          val (first, data) = {
+            val first = lines.next()
 
-              @tailrec
-              def line(): Unit =
-                if (lines.hasNext) {
-                  lines.next() match {
-                    case "---" =>
-                    case s =>
-                      buf ++= s
-                      buf += '\n'
-                      line()
-                  }
-                } else
-                  problem(s"unexpected end of file while reading front matter: $p")
+            first match {
+              case "---" =>
+                val buf = new StringBuilder
 
-              line()
-              buf.toString
-            case _ => problem(s"expected front matter: $p")
+                @tailrec
+                def line(): Unit =
+                  if (lines.hasNext) {
+                    lines.next() match {
+                      case "---" =>
+                      case s =>
+                        buf ++= s
+                        buf += '\n'
+                        line()
+                    }
+                  } else
+                    problem(s"unexpected end of file while reading front matter: $p")
+
+                line()
+                (first, buf.toString)
+              case _ => (first, "")
+            }
           }
 
-        contentFiles += ContentFile(p.getParent,
-                                    withoutExtension(p.getFileName.toString),
-                                    yaml(data),
-                                    lines map (_ :+ '\n') mkString)
-      }
+          contentFiles += ContentFile(p.getParent,
+                                      withoutExtension(p.getFileName.toString),
+                                      yaml(data),
+                                      (if (first == "---") "" else first :+ '\n') ++ (lines map (_ :+ '\n') mkString))
+        }
 
       listFiles(src, "YML", "YAML", "yml", "yaml") foreach (p =>
         dataFiles += DataFile(withoutExtension(p.getFileName.toString), yaml(readFile(p.toString))))
