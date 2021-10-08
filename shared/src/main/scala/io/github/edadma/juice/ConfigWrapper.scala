@@ -29,7 +29,7 @@ class ConfigWrapper(c: Config) extends Dynamic {
   }
 
   object PathsDynamic extends Dynamic {
-    def selectDynamic(name: String): List[Path] = stringList(name) map (Paths.get _)
+    def selectDynamic(name: String): List[Path] = stringList(name) map (Paths.get(_))
   }
 
   private def stringList(name: String) =
