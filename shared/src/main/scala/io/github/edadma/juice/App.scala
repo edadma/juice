@@ -28,8 +28,14 @@ object App {
         Files.createDirectory(dst1)
 
       val conf = new ConfigWrapper(config(src1, "basic"))
+      val content = src1 resolve conf.path.content.normalize
+      //    val layouts = src resolve conf.paths.layouts
+      //    val partials = src resolve conf.paths.partials
+      //    val shortcodes = src resolve conf.paths.shortcodes
 
-      process(src1, dst1, conf)
+      val site = process(src1, dst1, content)
+
+      pprint.pprintln(site)
     case ConfigCommand(src) =>
       println("Site config:")
 
@@ -43,12 +49,9 @@ object App {
 
   case class TemplateFile(parent: Path, name: String, template: TemplateAST)
 
-  def process(src: Path, dst: Path, conf: ConfigWrapper): Unit = {
-    val content = src resolve conf.path.content
-    //    val layouts = src resolve conf.paths.layouts
-    //    val partials = src resolve conf.paths.partials
-    //    val shortcodes = src resolve conf.paths.shortcodes
+  case class Site(content: List[ContentFile], data: List[DataFile], template: List[TemplateFile])
 
+  def process(src: Path, dst: Path, content: Path): Site = {
     val contentFiles = new ListBuffer[ContentFile]
     val dataFiles = new ListBuffer[DataFile]
     val templateFiles = new ListBuffer[TemplateFile]
@@ -129,6 +132,7 @@ object App {
     }
 
     processDir(src)
+    Site(contentFiles.toList, dataFiles.toList, templateFiles.toList)
   }
 
   def renderValue(v: Any): String =
