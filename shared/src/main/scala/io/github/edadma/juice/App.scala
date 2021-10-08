@@ -24,8 +24,11 @@ object App {
         Files.createDirectory(dst1)
 
       val conf = new ConfigWrapper(config(src1, "basic"))
+      val content = src1 resolve conf.path.content
 
-      println(processDir(src1, dst1))
+      if (!isDir(src1)) problem(s"can't read content directory: $content")
+
+      println(processDir(content, dst1))
     case ConfigCommand(src) =>
       println("Site config:")
 

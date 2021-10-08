@@ -3,6 +3,7 @@ package io.github.edadma.juice
 import org.ekrich.config.{Config, ConfigList}
 import org.ekrich.config.impl.ConfigString
 
+import java.nio.file.{Path, Paths}
 import scala.language.dynamics
 
 class ConfigWrapper(c: Config) extends Dynamic {
@@ -15,7 +16,7 @@ class ConfigWrapper(c: Config) extends Dynamic {
     def selectDynamic(name: String): Double =
       c.getNumber(name) match {
         case n: java.lang.Integer => n.toDouble
-        case n: java.lang.Double => n
+        case n: java.lang.Double  => n
       }
   }
 
@@ -23,15 +24,23 @@ class ConfigWrapper(c: Config) extends Dynamic {
     def selectDynamic(name: String): Boolean = c.getBoolean(name)
   }
 
-  object ListDynamic extends Dynamic {
-    def selectDynamic(name: String): List[String] =
-      c.getValue(name) match {
-        case s: ConfigString => List(s.unwrapped)
-        case l: ConfigList => configList(l) map (_.toString)
-      }
+  object PathDynamic extends Dynamic {
+    def selectDynamic(name: String): Path = Paths.get(c.getString(name))
   }
 
-  def apply(path: String): String = c.getString(path)
+  object PathsDynamic extends Dynamic {
+    def selectDynamic(name: String): List[Path] = stringList(name) map Paths.get
+  }
+
+  private def stringList(name: String) =
+    c.getValue(name) match {
+      case s: ConfigString => List(s.unwrapped)
+      case l: ConfigList   => configList(l) map (_.toString)
+    }
+
+  object ListDynamic extends Dynamic {
+    def selectDynamic(name: String): List[String] = stringList(name)
+  }
 
   def int: IntDynamic.type = IntDynamic
 
@@ -40,5 +49,9 @@ class ConfigWrapper(c: Config) extends Dynamic {
   def double: DoubleDynamic.type = DoubleDynamic
 
   def boolean: BooleanDynamic.type = BooleanDynamic
+
+  def path: PathDynamic.type = PathDynamic
+
+  def selectDynamic(name: String): String = c.getString(name)
 
 }
