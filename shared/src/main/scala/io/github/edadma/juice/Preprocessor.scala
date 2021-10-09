@@ -7,7 +7,10 @@ import java.io.{ByteArrayOutputStream, PrintStream}
 import scala.annotation.tailrec
 import scala.language.postfixOps
 
-class Preprocessor(startDelim: String, endDelim: String, shortcodes: Loader, renderer: TemplateRenderer) {
+class Preprocessor(startDelim: String = "{{",
+                   endDelim: String = "}}",
+                   shortcodes: TemplateLoader,
+                   renderer: TemplateRenderer) {
 
   def process(content: String): String = {
     val buf = new StringBuilder
@@ -21,7 +24,7 @@ class Preprocessor(startDelim: String, endDelim: String, shortcodes: Loader, ren
               case ShortcodeStartAST(Ident(pos, name), attrs, closed) =>
                 val data = attrs map { case (Ident(_, k), v) => k -> v.getOrElse("true") } toMap
 
-                shortcodes find name match {
+                shortcodes(name) match {
                   case Some(template) =>
                     val code = new ByteArrayOutputStream
                     val out = new PrintStream(code)

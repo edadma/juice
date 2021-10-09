@@ -5,19 +5,21 @@ import scala.collection.immutable.VectorMap
 import scala.jdk.CollectionConverters._
 import scala.language.postfixOps
 import io.github.edadma.cross_platform.readFile
-import io.github.edadma.squiggly.{PartialsLoader, TemplateAST, TemplateBuiltin, TemplateParser, TemplateRenderer}
+import io.github.edadma.squiggly.{TemplateAST, TemplateBuiltin, TemplateLoader, TemplateParser, TemplateRenderer}
 import io.github.edadma.squiggly.platformSpecific.yaml
 import io.github.edadma.commonmark.{CommonMarkParser, Util}
+import io.github.edadma.squiggly
 import org.ekrich.config.{Config, ConfigFactory, ConfigParseOptions, ConfigSyntax}
 
 import java.io.FileOutputStream
 import scala.annotation.tailrec
-import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
 object App {
 
-  lazy val templateParser: TemplateParser = TemplateParser.default
+  lazy val templateFunctions
+    : Map[String, squiggly.TemplateFunction] = TemplateBuiltin.functions ++ JuiceBuiltin.functions
+  lazy val templateParser: TemplateParser = new TemplateParser(functions = templateFunctions)
   lazy val markdownParser = new CommonMarkParser
 
   val run: PartialFunction[Command, Unit] = {
@@ -35,18 +37,24 @@ object App {
       val sitedata = configObject(siteconf.root)
       val conf = new ConfigWrapper(siteconf)
       val site = process(src1, dst1, conf)
-      val partialsLoader: PartialsLoader =
+      val partialsLoader: TemplateLoader =
         (name: String) =>
           site.partialTemplates find (_.name == name) map (_.template) orElse problem(s"partial '$name' not found")
       val templateRenderer: TemplateRenderer =
-        new TemplateRenderer(partialsLoader, mutable.HashMap(), TemplateBuiltin.functions ++ JuiceBuiltin.functions)
+        new TemplateRenderer(partials = partialsLoader, functions = templateFunctions)
+      val shortcodesLoader: TemplateLoader =
+        (name: String) =>
+          site.shortcodeTemplates find (_.name == name) map (_.template) orElse problem(s"shortcode '$name' not found")
+      val preprocessor = new Preprocessor(shortcodes = shortcodesLoader, renderer = templateRenderer)
 
       for (ContentFile(outdir, name, data, content) <- site.content) {
         site.layoutTemplates find (_.name == "page") match {
           case Some(TemplateFile(_, _, templte)) =>
             val out = new FileOutputStream(outdir resolve s"$name.html" toString)
             val pagedata =
-              Map("site" -> sitedata, "page" -> data, "content" -> Util.html(markdownParser.parse(content), 2).trim)
+              Map("site" -> sitedata,
+                  "page" -> data,
+                  "content" -> Util.html(markdownParser.parse(preprocessor.process(content)), 2).trim)
 
             templateRenderer.render(pagedata, templte, out)
             out.close()
@@ -57,12 +65,9 @@ object App {
       for (TemplateFile(path, _, template) <- site.otherTemplates) {
         val out = new FileOutputStream(path.toString)
 
-        println(sitedata)
         templateRenderer.render(Map("site" -> sitedata), template, out)
         out.close()
       }
-
-    //      pprint.pprintln(site)
     case ConfigCommand(src) =>
       println("Site config:")
 
