@@ -1,12 +1,14 @@
 package io.github.edadma.juice
 
-import java.nio.file.{CopyOption, Files, Path, StandardCopyOption}
+import java.nio.file.{Files, Path, StandardCopyOption}
 import scala.collection.immutable.VectorMap
 import scala.jdk.CollectionConverters._
 import scala.language.postfixOps
 import io.github.edadma.cross_platform.readFile
 import io.github.edadma.squiggly.{TemplateAST, TemplateParser, TemplateRenderer}
 import io.github.edadma.squiggly.platformSpecific.yaml
+import io.github.edadma.commonmark
+import io.github.edadma.commonmark.{CommonMarkParser, Util}
 import org.ekrich.config.{Config, ConfigFactory, ConfigParseOptions, ConfigSyntax}
 
 import java.io.FileOutputStream
@@ -17,6 +19,7 @@ object App {
 
   lazy val templateParser: TemplateParser = TemplateParser.default
   lazy val templateRenderer: TemplateRenderer = TemplateRenderer.default
+  lazy val markdownParser = new CommonMarkParser
 
   val run: PartialFunction[Command, Unit] = {
     case BuildCommand(src, dst) =>
@@ -29,21 +32,31 @@ object App {
       if (!isDir(dst1))
         Files.createDirectory(dst1)
 
-      val conf = new ConfigWrapper(config(src1, "basic"))
+      val siteconf = config(src1, "basic")
+      val sitedata = configObject(siteconf.root)
+      val conf = new ConfigWrapper(siteconf)
       val site = process(src1, dst1, conf)
 
 //      println(site.layoutTemplates)
 
-      for (page @ ContentFile(outdir, name, data, content) <- site.content) {
-        println(page)
+      for (ContentFile(outdir, name, data, content) <- site.content) {
         site.layoutTemplates find (_.name == "page") match {
-          case Some(TemplateFile(_, _, t)) =>
+          case Some(TemplateFile(_, _, templte)) =>
             val out = new FileOutputStream(outdir resolve s"$name.html" toString)
+            val pagedata =
+              Map("site" -> sitedata, "page" -> data, "content" -> Util.html(markdownParser.parse(content), 2).trim)
 
-            templateRenderer.render(page, t, out)
+            templateRenderer.render(pagedata, templte, out)
             out.close()
           case None => problem(s"'page' layout not found for laying out '$name'")
         }
+      }
+
+      for (TemplateFile(path, _, template) <- site.otherTemplates) {
+        val out = new FileOutputStream(path.toString)
+
+        templateRenderer.render(Map("site" -> sitedata), template, out)
+        out.close()
       }
 
     //      pprint.pprintln(site)
@@ -58,7 +71,7 @@ object App {
 
   case class ContentFile(outdir: Path, name: String, data: Any, content: String)
 
-  case class TemplateFile(parent: Path, name: String, template: TemplateAST)
+  case class TemplateFile(path: Path, name: String, template: TemplateAST)
 
   case class Site(content: List[ContentFile],
                   data: List[Data],
@@ -152,13 +165,9 @@ object App {
       if ((src == layouts || !dir.startsWith(layouts)) && (src == partials || !dir.startsWith(partials)) && (src == shortcodes || !dir
             .startsWith(shortcodes)))
         includeExts(listing, "html", "css", "scss", "sass") foreach { p =>
-          val outdir =
-            if (content == src) p.getParent
-            else dst resolve (content relativize p.getParent)
+          val outfile = dst resolve (src relativize p)
 
-          otherTemplates += TemplateFile(outdir,
-                                         withoutExtension(p.getFileName.toString),
-                                         templateParser.parse(readFile(p.toString)))
+          otherTemplates += TemplateFile(outfile, null, templateParser.parse(readFile(p.toString)))
         }
 
       Files.createDirectories(dst resolve (src relativize dir))

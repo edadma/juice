@@ -1,8 +1,9 @@
 <html>
   <head>
-    <title>{{ .data.title }}</title>
+    <title>{{ .page.title }}</title>
   </head>
   <body>
+    {{ .site.baseurl }}
     {{ .content }}
   </body>
 </html>
