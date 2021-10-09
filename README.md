@@ -1,4 +1,4 @@
-<img align="right" src="logo/splash.png" alt="squiggly logo">
+<img align="right" src="logo/juice-150.png" alt="juice logo">
 
 # module-name  
 
