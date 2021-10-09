@@ -1,4 +1,4 @@
-{{ partial header }}
+{{ partial 'header' }}
 
 <img class="logo" src="https://raw.githubusercontent.com/edadme/juice/dev/juice-150.png" width="150">
 
@@ -9,4 +9,4 @@
 <p><%- body.trim().match(/\<p>(.+)<\/p>/)[1] %> [&hellip;]</p>
 <% } -%>
 
-<%- include('_footer.ejs') -%>
+{{ partial 'footer' }}

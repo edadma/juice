@@ -5,20 +5,19 @@ import scala.collection.immutable.VectorMap
 import scala.jdk.CollectionConverters._
 import scala.language.postfixOps
 import io.github.edadma.cross_platform.readFile
-import io.github.edadma.squiggly.{TemplateAST, TemplateParser, TemplateRenderer}
+import io.github.edadma.squiggly.{PartialsLoader, TemplateAST, TemplateBuiltin, TemplateParser, TemplateRenderer}
 import io.github.edadma.squiggly.platformSpecific.yaml
-import io.github.edadma.commonmark
 import io.github.edadma.commonmark.{CommonMarkParser, Util}
 import org.ekrich.config.{Config, ConfigFactory, ConfigParseOptions, ConfigSyntax}
 
 import java.io.FileOutputStream
 import scala.annotation.tailrec
+import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
 object App {
 
   lazy val templateParser: TemplateParser = TemplateParser.default
-  lazy val templateRenderer: TemplateRenderer = TemplateRenderer.default
   lazy val markdownParser = new CommonMarkParser
 
   val run: PartialFunction[Command, Unit] = {
@@ -36,6 +35,13 @@ object App {
       val sitedata = configObject(siteconf.root)
       val conf = new ConfigWrapper(siteconf)
       val site = process(src1, dst1, conf)
+      val partialsLoader: PartialsLoader =
+        (name: String) =>
+          site.partialTemplates find (_.name == name) map (_.template) orElse problem(s"partial '$name' not found")
+      val templateRenderer: TemplateRenderer =
+        new TemplateRenderer(partialsLoader, mutable.HashMap(), TemplateBuiltin.functions)
+
+      println(site.partialTemplates map (_.name))
 
 //      println(site.layoutTemplates)
 
