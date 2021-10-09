@@ -37,12 +37,13 @@ object App {
       val siteconf = config(src1, "basic")
       val confdata = configObject(siteconf.root)
       val conf = new ConfigWrapper(siteconf)
+      val rendererData = parseurl(conf.baseurl) getOrElse problem(s"invalid base URL: ${conf.baseurl}")
       val site = process(src1, dst1, conf)
       val partialsLoader: TemplateLoader =
         (name: String) =>
           site.partialTemplates find (_.name == name) map (_.template) orElse problem(s"partial '$name' not found")
       val templateRenderer: TemplateRenderer =
-        new TemplateRenderer(partials = partialsLoader, functions = templateFunctions)
+        new TemplateRenderer(partials = partialsLoader, functions = templateFunctions, data = rendererData)
       val shortcodesLoader: TemplateLoader =
         (name: String) =>
           site.shortcodeTemplates find (_.name == name) map (_.template) orElse problem(s"shortcode '$name' not found")
