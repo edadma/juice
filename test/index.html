@@ -1,12 +1,12 @@
 {{ partial 'header' . }}
 
-<img class="logo" src="https://raw.githubusercontent.com/edadma/juice/dev/logo/juice-logo-black-150.png" width="150">
+<img class="logo" src="https://raw.githubusercontent.com/edadma/juice/dev/logo/juice-logo2-150.png" width="150">
 
 <h1>{{ .site.title }}</h1>
 
 {{ for .site.contents.posts.toSeq.reverse }}
 <h3><a href="posts/{{ ._2.name }}.html">{{ ._2.page.title }}</a> — {{ ._2.page.date }}</h3>
-<p>{{ (._2.content | findRE '<p>(.+)</p>')[0] }} [&hellip;]</p>
+<p>{{ (._2.content | findRE '<p>(.+)</p>')[0][1] }} [&hellip;]</p>
 {{ end }}
 
 {{ partial 'footer' . }}
