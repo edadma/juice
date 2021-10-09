@@ -1,3 +1,5 @@
+<img align="right" src="logos/splash.png" alt="squiggly logo">
+
 # module-name  
 
 **Badges** 
