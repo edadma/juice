@@ -1,5 +1,5 @@
 <hr>
-<p>&copy; 2021, {{ .site.author }}. Built with <a href="{{ .site.ssgurl }}">{{ .site.ssgname }}</a>.</p>
+<p>&copy; 2021, {{ .site.author }}. Built with <a href="{{ juiceurl }}">Juice</a>.</p>
 </div>
 </body>
 </html>

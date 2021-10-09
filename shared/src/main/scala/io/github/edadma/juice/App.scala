@@ -39,11 +39,7 @@ object App {
         (name: String) =>
           site.partialTemplates find (_.name == name) map (_.template) orElse problem(s"partial '$name' not found")
       val templateRenderer: TemplateRenderer =
-        new TemplateRenderer(partialsLoader, mutable.HashMap(), TemplateBuiltin.functions)
-
-      println(site.partialTemplates map (_.name))
-
-//      println(site.layoutTemplates)
+        new TemplateRenderer(partialsLoader, mutable.HashMap(), TemplateBuiltin.functions ++ JuiceBuiltin.functions)
 
       for (ContentFile(outdir, name, data, content) <- site.content) {
         site.layoutTemplates find (_.name == "page") match {
@@ -61,6 +57,7 @@ object App {
       for (TemplateFile(path, _, template) <- site.otherTemplates) {
         val out = new FileOutputStream(path.toString)
 
+        println(sitedata)
         templateRenderer.render(Map("site" -> sitedata), template, out)
         out.close()
       }
