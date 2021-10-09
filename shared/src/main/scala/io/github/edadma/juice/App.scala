@@ -13,6 +13,7 @@ import org.ekrich.config.{Config, ConfigFactory, ConfigParseOptions, ConfigSynta
 
 import java.io.FileOutputStream
 import scala.annotation.tailrec
+import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
 object App {
@@ -34,7 +35,7 @@ object App {
         Files.createDirectory(dst1)
 
       val siteconf = config(src1, "basic")
-      val sitedata = configObject(siteconf.root)
+      val confdata = configObject(siteconf.root)
       val conf = new ConfigWrapper(siteconf)
       val site = process(src1, dst1, conf)
       val partialsLoader: TemplateLoader =
@@ -46,13 +47,33 @@ object App {
         (name: String) =>
           site.shortcodeTemplates find (_.name == name) map (_.template) orElse problem(s"shortcode '$name' not found")
       val preprocessor = new Preprocessor(shortcodes = shortcodesLoader, renderer = templateRenderer)
+      val contents = new mutable.LinkedHashMap[String, Any]
+
+      def put(map: mutable.LinkedHashMap[String, Any],
+              parent: List[String],
+              value: Either[mutable.LinkedHashMap[String, Any], ContentFile]): Unit =
+        parent match {
+          case Nil => map(value.name) = value
+          case h :: t =>
+            map get
+        }
+
+      for (page @ ContentFile(outdir, name, data, content) <- site.content) {
+        val rel = outdir relativize dst
+
+        put(contents, rel.iterator.asScala.toList map (_.toString), page)
+      }
+
+      val sitedata = confdata ++ Map()
+
+      println(site.content)
 
       for (ContentFile(outdir, name, data, content) <- site.content) {
         site.layoutTemplates find (_.name == "page") match {
           case Some(TemplateFile(_, _, templte)) =>
             val out = new FileOutputStream(outdir resolve s"$name.html" toString)
             val pagedata =
-              Map("site" -> sitedata,
+              Map("site" -> confdata,
                   "page" -> data,
                   "content" -> Util.html(markdownParser.parse(preprocessor.process(content)), 2).trim)
 
@@ -65,7 +86,7 @@ object App {
       for (TemplateFile(path, _, template) <- site.otherTemplates) {
         val out = new FileOutputStream(path.toString)
 
-        templateRenderer.render(Map("site" -> sitedata), template, out)
+        templateRenderer.render(Map("site" -> confdata), template, out)
         out.close()
       }
     case ConfigCommand(src) =>
