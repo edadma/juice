@@ -1,4 +1,4 @@
-{{ partial 'header' }}
+{{ partial 'header' . }}
 
 <p><a href="{{ .site.baseurl }}/index.html">&larr; {{ .site.title }}</a></p>
 
@@ -6,4 +6,4 @@
 {{ .content }}
 <p><em>Posted on {{ .page.date }}.</em></p>
 
-{{ partial 'footer' }}
+{{ partial 'footer' . }}
