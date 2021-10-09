@@ -1,4 +1,4 @@
-![juice logo](logo/juice-logo-250.png)
+<img align="right" src="logo/juice-logo2-200.png">juice logo</img>
 
 # module-name  
 
