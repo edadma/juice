@@ -1,6 +1,4 @@
-<!-- <img align="right" src="logo/kiwi.png" alt="juice logo">
-
-<a href="https://www.vectorstock.com/royalty-free-vector/fresh-kiwi-fruit-with-green-leaves-and-juicy-vector-31684651">Fresh kiwi fruit with green leaves and juicy vector by vectorstock</a> -->
+<img align="right" src="logo/juice-logo-300.png" alt="juice logo">
 
 # module-name  
 
