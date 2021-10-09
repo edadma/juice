@@ -47,35 +47,42 @@ object App {
         (name: String) =>
           site.shortcodeTemplates find (_.name == name) map (_.template) orElse problem(s"shortcode '$name' not found")
       val preprocessor = new Preprocessor(shortcodes = shortcodesLoader, renderer = templateRenderer)
+
+      for (c: ContentFile <- site.content)
+        c.content = Util.html(markdownParser.parse(preprocessor.process(c.content)), 2).trim
+
       val contents = new mutable.LinkedHashMap[String, Any]
 
-      def put(map: mutable.LinkedHashMap[String, Any],
-              parent: List[String],
-              value: Either[mutable.LinkedHashMap[String, Any], ContentFile]): Unit =
+      @tailrec
+      def put(map: mutable.LinkedHashMap[String, Any], parent: List[String], content: ContentFile): Unit =
         parent match {
-          case Nil => map(value.name) = value
+          case Nil => map(content.name) = content
           case h :: t =>
-            map get
+            map get h match {
+              case Some(m: mutable.LinkedHashMap[String, Any]) => put(m, t, content)
+              case Some(_: ContentFile) =>
+                problem(s"unexpected content file in place of directory in contents data structure: $h")
+              case None =>
+                val m = new mutable.LinkedHashMap[String, Any]
+
+                map(h) = m
+                put(m, t, content)
+            }
         }
 
       for (page @ ContentFile(outdir, name, data, content) <- site.content) {
-        val rel = outdir relativize dst
+        val rel = dst1 relativize outdir
 
         put(contents, rel.iterator.asScala.toList map (_.toString), page)
       }
 
-      val sitedata = confdata ++ Map()
-
-      println(site.content)
+      val sitedata = confdata + ("contents" -> contents)
 
       for (ContentFile(outdir, name, data, content) <- site.content) {
         site.layoutTemplates find (_.name == "page") match {
           case Some(TemplateFile(_, _, templte)) =>
             val out = new FileOutputStream(outdir resolve s"$name.html" toString)
-            val pagedata =
-              Map("site" -> confdata,
-                  "page" -> data,
-                  "content" -> Util.html(markdownParser.parse(preprocessor.process(content)), 2).trim)
+            val pagedata = Map("site" -> sitedata, "page" -> data, "content" -> content)
 
             templateRenderer.render(pagedata, templte, out)
             out.close()
@@ -86,7 +93,7 @@ object App {
       for (TemplateFile(path, _, template) <- site.otherTemplates) {
         val out = new FileOutputStream(path.toString)
 
-        templateRenderer.render(Map("site" -> confdata), template, out)
+        templateRenderer.render(Map("site" -> sitedata), template, out)
         out.close()
       }
     case ConfigCommand(src) =>
@@ -98,7 +105,7 @@ object App {
 
   case class Data(parent: Path, name: String, data: Any)
 
-  case class ContentFile(outdir: Path, name: String, data: Any, content: String)
+  case class ContentFile(outdir: Path, name: String, page: Any, var content: String)
 
   case class TemplateFile(path: Path, name: String, template: TemplateAST)
 
