@@ -15,7 +15,10 @@ object JuiceBuiltin {
 
           s"$base${Paths.get(path) resolve arg}"
       }),
-      TemplateFunction("juiceurl", 0, _ => "https://github.com/edadma/juice")
+      TemplateFunction("juiceurl", 0, _ => "https://github.com/edadma/juice"),
+      TemplateFunction("relURL", 1, {
+        case (con, Seq(arg: String)) => Paths.get(con.renderer.data.asInstanceOf[BaseURL].path) resolve arg toString
+      }),
     ) map (f => (f.name, f)) toMap
 
 }
