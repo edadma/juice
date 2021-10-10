@@ -36,7 +36,7 @@ object Main extends App {
 
   val conf = ConfigFactory.parseString(
     """
-      |baseurl = "http://localhost:8080"
+      |baseURL = "http://localhost:8080"
       |layouts = [.]
       |""".stripMargin /*,
     ConfigParseOptions.defaults.setSyntax(ConfigSyntax.PROPERTIES)*/

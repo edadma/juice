@@ -39,17 +39,17 @@ object App {
 
         baseurl match {
           case None =>
-            c.getString("baseurl") match {
+            c.getString("baseURL") match {
               case "" =>
-                c.withValue("baseurl", ConfigValueFactory.fromAnyRef(s"file://$dst1"))
+                c.withValue("baseURL", ConfigValueFactory.fromAnyRef(s"file://$dst1"))
               case _ => c
             }
-          case Some(b) => c.withValue("baseurl", ConfigValueFactory.fromAnyRef(b))
+          case Some(b) => c.withValue("baseURL", ConfigValueFactory.fromAnyRef(b))
         }
       }
       val confdata = configObject(siteconf.root)
       val conf = new ConfigWrapper(siteconf)
-      val rendererData = parseurl(conf.baseurl) getOrElse problem(s"invalid base URL: ${conf.baseurl}")
+      val rendererData = parseurl(conf.baseURL) getOrElse problem(s"invalid base URL: ${conf.baseURL}")
       val site = process(src1, dst1, conf)
       val partialsLoader: TemplateLoader =
         (name: String) =>
