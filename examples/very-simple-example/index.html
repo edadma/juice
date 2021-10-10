@@ -5,7 +5,7 @@
 <h1>{{ .site.title }}</h1>
 
 {{ for .site.contents.posts.toSeq.reverse }}
-  <h3><a href="posts/{{ ._1 }}.html">{{ ._2.page.title }}</a> — {{ ._2.page.date }}</h3>
+  <h3><a href="posts/{{ ._1 }}.html">{{ ._2.page.title }}</a> — {{ ._2.page.date | format ':date_full' }}</h3>
   <p>{{ (._2.content | findRE '<p>(.+)</p>')[0][1] }} [&hellip;]</p>
 {{ end }}
 
