@@ -1,6 +1,6 @@
 body {
-    background: {{ .site.backgroundColor | default 'white' }};
-    color: {{ .site.bodyColor | default 'black' }};
+    background: white;
+    color: black;
     font: 16px/1.5 sans-serif;
 }
 
@@ -14,7 +14,7 @@ img.logo {
 }
 
 a {
-    color: {{ .site.linkColor | default '#0076DD' }};
+    color: #0076DD;
 }
 
 hr {
