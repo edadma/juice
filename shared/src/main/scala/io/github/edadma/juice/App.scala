@@ -1,6 +1,6 @@
 package io.github.edadma.juice
 
-import java.nio.file.{Files, Path, StandardCopyOption}
+import java.nio.file.{Files, Path, Paths, StandardCopyOption}
 import scala.collection.immutable.VectorMap
 import scala.jdk.CollectionConverters._
 import scala.language.postfixOps
@@ -9,7 +9,7 @@ import io.github.edadma.squiggly.{TemplateAST, TemplateBuiltin, TemplateLoader, 
 import io.github.edadma.squiggly.platformSpecific.yaml
 import io.github.edadma.commonmark.{CommonMarkParser, Util}
 import io.github.edadma.squiggly
-import org.ekrich.config.{Config, ConfigFactory, ConfigParseOptions, ConfigSyntax}
+import org.ekrich.config.{Config, ConfigFactory, ConfigParseOptions, ConfigSyntax, ConfigValueFactory}
 
 import java.io.FileOutputStream
 import scala.annotation.tailrec
@@ -23,8 +23,8 @@ object App {
   lazy val templateParser: TemplateParser = new TemplateParser(functions = templateFunctions)
   lazy val markdownParser = new CommonMarkParser
 
-  val run: PartialFunction[Command, Unit] = {
-    case BuildCommand(src, dst) =>
+  val run: PartialFunction[Args, Unit] = {
+    case Args(verbose, baseurl, Some(BuildCommand(src, dst))) =>
       val src1 = src.normalize.toAbsolutePath
       val dst1 = (Option(dst) getOrElse (src1 resolve "public")).normalize.toAbsolutePath
 
@@ -34,7 +34,19 @@ object App {
       if (!isDir(dst1))
         Files.createDirectory(dst1)
 
-      val siteconf = config(src1, "basic")
+      val siteconf = {
+        val c = config(src1, "basic")
+
+        baseurl match {
+          case None =>
+            c.getString("baseurl") match {
+              case "" =>
+                c.withValue("baseurl", ConfigValueFactory.fromAnyRef(s"file://$dst1"))
+              case _ => c
+            }
+          case Some(b) => c.withValue("baseurl", ConfigValueFactory.fromAnyRef(b))
+        }
+      }
       val confdata = configObject(siteconf.root)
       val conf = new ConfigWrapper(siteconf)
       val rendererData = parseurl(conf.baseurl) getOrElse problem(s"invalid base URL: ${conf.baseurl}")
@@ -97,7 +109,7 @@ object App {
         templateRenderer.render(Map("site" -> sitedata), template, out)
         out.close()
       }
-    case ConfigCommand(src) =>
+    case Args(verbose, baseurl, Some(ConfigCommand(src))) =>
       println("Site config:")
 
       for ((k, v) <- configObject(config(src, "basic").root))

@@ -55,4 +55,6 @@ package object juice {
       case _ => None
     }
 
+  case class Args(verbose: Boolean = false, baseurl: Option[String] = None, cmd: Option[Command] = None)
+
 }

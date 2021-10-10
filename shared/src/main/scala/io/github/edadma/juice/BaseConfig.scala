@@ -7,7 +7,7 @@ object BaseConfig {
   private val configs =
     Map(
       "basic" -> ("""
-          |baseurl =    http://localhost:8000
+          |baseurl =    
           |title =      Untitled
           |author =     Noname
           |content =    .

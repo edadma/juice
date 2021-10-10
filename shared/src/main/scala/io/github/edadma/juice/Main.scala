@@ -5,9 +5,7 @@ import scopt.OParser
 
 object Main extends App {
 
-  case class Config(verbose: Boolean = false, baseurl: Option[String] = None, cmd: Option[Command] = None)
-
-  val builder = OParser.builder[Config]
+  val builder = OParser.builder[Args]
   val parser = {
     import builder._
 
@@ -73,10 +71,10 @@ object Main extends App {
     )
   }
 
-  OParser.parse(parser, args, Config()) match {
-    case Some(Config(_, _, Some(cmd))) => App run cmd
-    case Some(_)                       => println(OParser.usage(parser))
-    case _                             =>
+  OParser.parse(parser, args, Args()) match {
+    case Some(args @ Args(_, _, Some(_))) => App run args
+    case Some(_)                          => println(OParser.usage(parser))
+    case _                                =>
   }
 
 }
