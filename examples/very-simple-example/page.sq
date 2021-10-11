@@ -1,6 +1,6 @@
 {{ partial 'header' . }}
 
-<p><a href="{{ 'index.html' | absURL }}">&larr; {{ .site.title }}</a></p>
+<p><a href="{{ '/' | absURL }}">&larr; {{ .site.title }}</a></p>
 
 <h1>{{ .page.title }}</h1>
 {{ .content }}

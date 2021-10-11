@@ -93,11 +93,15 @@ object App {
 
       for (ContentFile(outdir, name, data, content) <- site.content) {
         site.layoutTemplates find (_.name == "page") match {
-          case Some(TemplateFile(_, _, templte)) =>
-            val out = new FileOutputStream(outdir resolve s"$name.html" toString)
+          case Some(TemplateFile(_, _, template)) =>
+            val pagedir = outdir resolve name
+
+            Files.createDirectories(pagedir)
+
+            val out = new FileOutputStream(pagedir resolve "index.html" toString)
             val pagedata = Map("site" -> sitedata, "page" -> data, "content" -> content)
 
-            templateRenderer.render(pagedata, templte, out)
+            templateRenderer.render(pagedata, template, out)
             out.close()
           case None => problem(s"'page' layout not found for laying out '$name'")
         }
