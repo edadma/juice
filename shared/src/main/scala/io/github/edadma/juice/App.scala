@@ -41,7 +41,7 @@ object App {
           case None =>
             c.getString("baseURL") match {
               case "" =>
-                c.withValue("baseURL", ConfigValueFactory.fromAnyRef(s"file://$dst1"))
+                c.withValue("baseURL", ConfigValueFactory.fromAnyRef(s"http://localhost:8080"))
               case _ => c
             }
           case Some(b) => c.withValue("baseURL", ConfigValueFactory.fromAnyRef(b))
