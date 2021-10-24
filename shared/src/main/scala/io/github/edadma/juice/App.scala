@@ -1,6 +1,6 @@
 package io.github.edadma.juice
 
-import java.nio.file.{Files, Path, Paths, StandardCopyOption}
+import java.nio.file.{Files, Path, StandardCopyOption}
 import scala.collection.immutable.VectorMap
 import scala.jdk.CollectionConverters._
 import scala.language.postfixOps
