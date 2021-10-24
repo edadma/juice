@@ -1,4 +1,4 @@
-package io.github.edadma.juice
+package io.github.edadma.juicer
 
 import org.ekrich.config.{Config, ConfigList}
 import org.ekrich.config.impl.ConfigString

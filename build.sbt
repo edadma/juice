@@ -1,7 +1,7 @@
 ThisBuild / licenses += "ISC" -> url("https://opensource.org/licenses/ISC")
 ThisBuild / versionScheme := Some("semver-spec")
 
-lazy val juice = crossProject(JSPlatform, JVMPlatform, NativePlatform).in(file(".")).
+lazy val juicer = crossProject(JSPlatform, JVMPlatform, NativePlatform).in(file(".")).
   settings(
     name := "juicer",
     version := "0.1.0",

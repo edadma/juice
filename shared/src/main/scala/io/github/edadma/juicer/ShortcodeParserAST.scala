@@ -1,4 +1,4 @@
-package io.github.edadma.juice
+package io.github.edadma.juicer
 
 case class Ident(pos: Int, name: String)
 

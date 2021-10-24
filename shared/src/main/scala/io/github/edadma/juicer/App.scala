@@ -1,4 +1,4 @@
-package io.github.edadma.juice
+package io.github.edadma.juicer
 
 import java.nio.file.{Files, Path, StandardCopyOption}
 import scala.collection.immutable.VectorMap
@@ -19,7 +19,7 @@ import scala.collection.mutable.ListBuffer
 object App {
 
   lazy val templateFunctions
-    : Map[String, squiggly.TemplateFunction] = TemplateBuiltin.functions ++ JuiceBuiltin.functions
+    : Map[String, squiggly.TemplateFunction] = TemplateBuiltin.functions ++ JuicerBuiltin.functions
   lazy val templateParser: TemplateParser = new TemplateParser(functions = templateFunctions)
   lazy val markdownParser = new CommonMarkParser
 
@@ -35,15 +35,10 @@ object App {
         Files.createDirectory(dst1)
 
       val siteconf = {
-        val c = config(src1, "basic")
+        val c = config(src1, "base")
 
         baseurl match {
-          case None =>
-            c.getString("baseURL") match {
-              case "" =>
-                c.withValue("baseURL", ConfigValueFactory.fromAnyRef(s"http://localhost:8080"))
-              case _ => c
-            }
+          case None    => c
           case Some(b) => c.withValue("baseURL", ConfigValueFactory.fromAnyRef(b))
         }
       }
@@ -134,10 +129,10 @@ object App {
                   otherTemplates: List[TemplateFile])
 
   def process(src: Path, dst: Path, conf: ConfigWrapper): Site = {
-    val content = src resolve conf.path.content.normalize
-    val layouts = src resolve conf.path.layouts.normalize
-    val partials = src resolve conf.path.partials.normalize
-    val shortcodes = src resolve conf.path.shortcodes.normalize
+    val content = src resolve conf.path.contentDir.normalize
+    val layouts = src resolve conf.path.layoutDir.normalize
+    val partials = src resolve conf.path.partialDir.normalize
+    val shortcodes = src resolve conf.path.shortcodeDir.normalize
     val contentFiles = new ListBuffer[ContentFile]
     val dataFiles = new ListBuffer[Data]
     val layoutTemplates = new ListBuffer[TemplateFile]

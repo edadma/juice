@@ -1,4 +1,4 @@
-package io.github.edadma.juice
+package io.github.edadma.juicer
 
 import io.github.edadma.char_reader._
 import io.github.edadma.squiggly._

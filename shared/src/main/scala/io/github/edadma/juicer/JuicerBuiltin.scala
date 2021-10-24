@@ -1,11 +1,11 @@
-package io.github.edadma.juice
+package io.github.edadma.juicer
 
 import io.github.edadma.squiggly.TemplateFunction
 
 import java.nio.file.Paths
 import scala.language.postfixOps
 
-object JuiceBuiltin {
+object JuicerBuiltin {
 
   val functions: Map[String, TemplateFunction] =
     List(
@@ -15,7 +15,7 @@ object JuiceBuiltin {
 
           s"$base${Paths.get(path) resolve arg}"
       }),
-      TemplateFunction("juiceurl", 0, _ => "https://github.com/edadma/juice"),
+      TemplateFunction("juicerurl", 0, _ => "https://github.com/edadma/juicer"),
       TemplateFunction("relURL", 1, {
         case (con, Seq(arg: String)) => Paths.get(con.renderer.data.asInstanceOf[BaseURL].path) resolve arg toString
       }),

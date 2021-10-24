@@ -9,7 +9,7 @@ import scala.jdk.CollectionConverters._
 import scala.language.postfixOps
 import scala.util.matching.Regex
 
-package object juice {
+package object juicer {
 
   def isFile(p: Path): Boolean = Files.isRegularFile(p) && Files.isReadable(p)
 

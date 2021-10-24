@@ -1,4 +1,4 @@
-package io.github.edadma.juice
+package io.github.edadma.juicer
 
 import org.parboiled2._
 import shapeless.HNil

@@ -1,4 +1,4 @@
-package io.github.edadma.juice
+package io.github.edadma.juicer
 
 import java.io.File
 import scopt.OParser
@@ -21,8 +21,8 @@ object Main extends App {
     }
 
     OParser.sequence(
-      programName("juice"),
-      head("Juice Site Generator", "v0.1.0"),
+      programName("juicer"),
+      head("Juicer Site Generator", "v0.1.0"),
       note(section("General Options")),
       opt[String]('b', "baseurl")
         .valueName("<URL>")
