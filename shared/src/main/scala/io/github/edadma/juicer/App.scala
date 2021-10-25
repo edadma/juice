@@ -76,8 +76,12 @@ object App {
           site.shortcodeTemplates find (_.name == name) map (_.template) orElse problem(s"shortcode '$name' not found")
       val preprocessor = new Preprocessor(shortcodes = shortcodesLoader, renderer = templateRenderer)
 
-      for (c: ContentFile <- site.content)
-        c.content = Util.html(markdownParser.parse(preprocessor.process(c.content)), 2).trim
+      for (c: ContentFile <- site.content) {
+        val doc = markdownParser.parse(preprocessor.process(c.source))
+
+        c.content = Util.html(doc, 2).trim
+        c.toc = Util.toc(doc)
+      }
 
       val contents = new mutable.LinkedHashMap[String, Any]
 
@@ -98,7 +102,7 @@ object App {
             }
         }
 
-      for (page @ ContentFile(outdir, name, data, content) <- site.content) {
+      for (page @ ContentFile(outdir, _, _, _, _, _) <- site.content) {
         val rel = dst1 relativize outdir
 
         put(contents, rel.iterator.asScala.toList map (_.toString), page)
@@ -106,7 +110,7 @@ object App {
 
       val sitedata = confdata + ("contents" -> contents)
 
-      for (ContentFile(outdir, name, data, content) <- site.content) {
+      for (ContentFile(outdir, name, data, _, content, toc) <- site.content) {
         site.layoutTemplates find (_.name == "page") match {
           case Some(TemplateFile(_, _, template)) =>
             val pagedir = outdir resolve name
@@ -114,7 +118,7 @@ object App {
             Files.createDirectories(pagedir)
 
             val out = new FileOutputStream(pagedir resolve "index.html" toString)
-            val pagedata = Map("site" -> sitedata, "page" -> data, "content" -> content)
+            val pagedata = Map("site" -> sitedata, "page" -> data, "content" -> content, "toc" -> toc)
 
             templateRenderer.render(pagedata, template, out)
             out.close()

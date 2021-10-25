@@ -1,5 +1,6 @@
 package io.github.edadma.juicer
 
+import io.github.edadma.commonmark.TOC
 import io.github.edadma.cross_platform.readFile
 import io.github.edadma.squiggly.TemplateAST
 import io.github.edadma.squiggly.platformSpecific.yaml
@@ -67,7 +68,8 @@ object Process {
                                       withoutExtension(p.getFileName.toString),
                                       yaml(data),
                                       ((if (first == "---") ""
-                                        else first :+ '\n') ++ (lines map (_ :+ '\n') mkString)).trim)
+                                        else first :+ '\n') ++ (lines map (_ :+ '\n') mkString)).trim,
+                                      null)
         }
 
       includeExts(listing, "YML", "YAML", "yml", "yaml") foreach (p =>
@@ -152,7 +154,7 @@ object Process {
 
 case class Data(parent: Path, name: String, data: Any)
 
-case class ContentFile(outdir: Path, name: String, page: Any, var content: String)
+case class ContentFile(outdir: Path, name: String, page: Any, source: String, var content: String, var toc: TOC)
 
 case class TemplateFile(path: Path, name: String, template: TemplateAST)
 
