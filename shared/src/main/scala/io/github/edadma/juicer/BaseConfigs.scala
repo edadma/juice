@@ -2,11 +2,11 @@ package io.github.edadma.juicer
 
 import org.ekrich.config.{Config, ConfigFactory, ConfigParseOptions, ConfigSyntax}
 
-object BaseConfig {
+object BaseConfigs {
 
   private val configs =
     Map(
-      "base" -> ("""
+      "simple" -> ("""
           |baseURL =        http://localhost:8080
           |title =          Untitle
           |author =         Noname
@@ -29,7 +29,7 @@ object BaseConfig {
 }
 
 /*
-      "base" -> ("""
+      "simple" -> ("""
           |baseURLKey =     baseURL
           |titleKey =       title
           |authorKey =      author

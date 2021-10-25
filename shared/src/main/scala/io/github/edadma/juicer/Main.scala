@@ -28,9 +28,13 @@ object Main extends App {
         .valueName("<URL>")
         .action((b, c) => c.copy(baseurl = Some(b)))
         .text("base site URL"),
+      opt[String]('c', "config")
+        .valueName("<URL>")
+        .action((b, c) => c.copy(baseurl = Some(b)))
+        .text("base site configuration (default is 'standard')"),
       help('h', "help").text("prints this usage text"),
       opt[Unit]('v', "verbose")
-        .action((i, c) => c.copy(verbose = true))
+        .action((_, c) => c.copy(verbose = true))
         .text("verbose output"),
       version("version").text("prints the version"),
       note(section("Commands")),
@@ -72,9 +76,9 @@ object Main extends App {
   }
 
   OParser.parse(parser, args, Args()) match {
-    case Some(args @ Args(_, _, Some(_))) => App run args
-    case Some(_)                          => println(OParser.usage(parser))
-    case _                                =>
+    case Some(args: Args) if args.cmd.nonEmpty => App run args
+    case Some(_)                               => println(OParser.usage(parser))
+    case _                                     =>
   }
 
 }

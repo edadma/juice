@@ -57,7 +57,10 @@ package object juicer {
       case _ => None
     }
 
-  case class Args(verbose: Boolean = false, baseurl: Option[String] = None, cmd: Option[Command] = None)
+  case class Args(config: String = "standard",
+                  verbose: Boolean = false,
+                  baseurl: Option[String] = None,
+                  cmd: Option[Command] = None)
 
   var showSteps = false
 

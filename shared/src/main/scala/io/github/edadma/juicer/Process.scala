@@ -102,27 +102,34 @@ object Process {
           otherTemplates += TemplateFile(outfile, null, templateParser.parse(readFile(p.toString)))
         }
 
-      Files.createDirectories(dst resolve (src relativize dir))
-      excludeExts(listing,
-                  "html",
-                  "sq",
-                  "css",
-                  "scss",
-                  "sass",
-                  "YML",
-                  "YAML",
-                  "yml",
-                  "yaml",
-                  "MD",
-                  "md",
-                  "markdown",
-                  "props",
-                  "properties",
-                  "conf",
-                  "hocon") foreach { p =>
-        val target = dst resolve (src relativize p)
+      if (dir startsWith static) {
+        if (static == src) {
+          Files.createDirectories(dst resolve (src relativize dir))
 
-        Files.copy(p, target, StandardCopyOption.REPLACE_EXISTING)
+          excludeExts(listing,
+                      "html",
+                      "sq",
+                      "css",
+                      "scss",
+                      "sass",
+                      "YML",
+                      "YAML",
+                      "yml",
+                      "yaml",
+                      "MD",
+                      "md",
+                      "markdown",
+                      "props",
+                      "properties",
+                      "conf",
+                      "hocon") foreach { p =>
+            val target = dst resolve (src relativize p)
+
+            Files.copy(p, target, StandardCopyOption.REPLACE_EXISTING)
+          }
+        }
+      } else {
+        //
       }
     }
 

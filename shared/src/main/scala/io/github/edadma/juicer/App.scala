@@ -19,7 +19,7 @@ import scala.collection.mutable.ListBuffer
 object App {
 
   val run: PartialFunction[Args, Unit] = {
-    case Args(verbose, baseurl, Some(BuildCommand(src, dst))) =>
+    case Args(baseConfig, verbose, baseurl, Some(BuildCommand(src, dst))) =>
       showSteps = verbose
 
       val src1 = src.normalize.toAbsolutePath
@@ -29,7 +29,7 @@ object App {
       if (!isDir(src1)) problem(s"not a readable directory: $src1")
 
       val (dst1, siteconf) = {
-        val c = config(src1, "base")
+        val c = config(src1, baseConfig)
         val c1 =
           baseurl match {
             case None    => c
@@ -128,10 +128,10 @@ object App {
         templateRenderer.render(Map("site" -> sitedata), template, out)
         out.close()
       }
-    case Args(verbose, baseurl, Some(ConfigCommand(src))) =>
+    case Args(baseConfig, verbose, baseurl, Some(ConfigCommand(src))) =>
       println("Site config:")
 
-      for ((k, v) <- configObject(config(src, "basic").root))
+      for ((k, v) <- configObject(config(src, baseConfig).root))
         println(s"  $k = ${renderValue(v)}")
   }
 
@@ -164,7 +164,7 @@ object App {
   }
 
   def config(src: Path, base: String): Config = {
-    BaseConfig(base) match {
+    BaseConfigs(base) match {
       case Some(b) =>
         includeExts(list(src), "json", "conf", "properties", "props", "hocon").foldLeft(b) {
           case (c, p) => readConfig(p) withFallback c
