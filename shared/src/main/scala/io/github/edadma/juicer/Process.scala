@@ -94,8 +94,8 @@ object Process {
                                              templateParser.parse(readFile(p.toString)))
         }
 
-      if ((src == layouts || !dir.startsWith(layouts)) && (src == partials || !dir.startsWith(partials)) && (src == shortcodes || !dir
-            .startsWith(shortcodes)))
+      if ((src == layouts || !dir.startsWith(layouts)) && (src == partials || !dir.startsWith(partials)) &&
+          (src == shortcodes || !dir.startsWith(shortcodes)))
         includeExts(listing, "html", "css", "scss", "sass") foreach { p =>
           val outfile = dst resolve (src relativize p)
 
