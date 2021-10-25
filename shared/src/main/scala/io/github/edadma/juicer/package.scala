@@ -42,7 +42,7 @@ package object juicer {
   def configObject(o: ConfigObject): VectorMap[String, Any] =
     o.entrySet.asScala.toList map (e => e.getKey -> configValue(e.getValue)) sortBy (_._1) to VectorMap
 
-  val BaseURLRegex: Regex = raw"(http(?:s)?://[a-zA-Z0-9-.]+(?::\d+)?|file://)((?:/[a-zA-Z0-9-.]+)*/?)".r
+  val BaseURLRegex: Regex = raw"(http(?:s)?://[a-zA-Z0-9-.]+(?::\d+)?|file://)?((?:/[a-zA-Z0-9-.]+)*/?)".r
 
   case class BaseURL(base: String, path: String)
 
@@ -50,7 +50,7 @@ package object juicer {
     s match {
       case BaseURLRegex(base, path) =>
         Some(
-          BaseURL(base,
+          BaseURL(if (base eq null) "" else base,
                   if (path == "") "/"
                   else if (path endsWith "/") path dropRight 1
                   else path))

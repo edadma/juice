@@ -30,7 +30,7 @@ object Main extends App {
         .text("base site URL"),
       opt[String]('c', "config")
         .valueName("<URL>")
-        .action((b, c) => c.copy(baseurl = Some(b)))
+        .action((b, c) => c.copy(config = b))
         .text("base site configuration (default is 'standard')"),
       help('h', "help").text("prints this usage text"),
       opt[Unit]('v', "verbose")
