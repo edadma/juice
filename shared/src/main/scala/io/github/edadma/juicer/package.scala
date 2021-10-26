@@ -64,7 +64,7 @@ package object juicer {
 
   var showSteps = false
 
-  def show(msg: String): Unit = if (showSteps) println(msg)
+  def show(msg: String, cond: Boolean = true): Unit = if (showSteps && cond) println(msg)
 
   def list(dir: Path): List[Path] = Files.list(dir).iterator.asScala.toList
 

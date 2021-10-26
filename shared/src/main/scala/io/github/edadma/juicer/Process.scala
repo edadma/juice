@@ -28,6 +28,8 @@ object Process {
     if (!isDir(content)) problem(s"can't read content directory: $content")
 
     def processDir(dir: Path): Unit = {
+      show(s">>> $dir")
+
       val listing = list(dir)
 
       excludeDirs(listing, dst) foreach processDir
@@ -98,16 +100,23 @@ object Process {
         }
 
       if ((src == layouts || !dir.startsWith(layouts)) && (src == partials || !dir.startsWith(partials)) &&
-          (src == shortcodes || !dir.startsWith(shortcodes)))
-        includeExts(listing, "html", "css", "scss", "sass") foreach { p =>
+          (src == shortcodes || !dir.startsWith(shortcodes))) {
+        val l = includeExts(listing, "html", "css", "scss", "sass")
+
+        show(s"identify other templates: ${l map (_.getFileName) mkString ", "}", l.nonEmpty)
+        l foreach { p =>
           val outfile = dst resolve (src relativize p)
 
           otherTemplates += TemplateFile(outfile, null, templateParser.parse(readFile(p.toString)))
         }
+      }
 
       if (dir startsWith static) {
         if (static == src) {
-          Files.createDirectories(dst resolve (src relativize dir))
+          val subdir = dst resolve (src relativize dir)
+
+          show(s"static: create directory $subdir")
+          Files.createDirectories(subdir)
 
           excludeExts(listing,
                       "html",
@@ -126,14 +135,26 @@ object Process {
                       "properties",
                       "conf",
                       "hocon") foreach { p =>
-            val target = dst resolve (src relativize p)
+            val dp = dst resolve (src relativize p)
 
-            Files.copy(p, target, StandardCopyOption.REPLACE_EXISTING)
+            show(s"static: copy $p => $dp")
+            Files.copy(p, dp, StandardCopyOption.REPLACE_EXISTING)
           }
         }
       } else {
-        //
+        val subdir = dst resolve (static relativize dir)
+
+        show(s"static: create directory $subdir")
+        Files.createDirectories(subdir)
+        listing foreach { p =>
+          val dp = dst resolve (static relativize p)
+
+          show(s"static: copy $p => $dp")
+          Files.copy(p, dp, StandardCopyOption.REPLACE_EXISTING)
+        }
       }
+
+      show(s"<<< ${dir.getParent}", dir.getParent startsWith src)
     }
 
     processDir(src)

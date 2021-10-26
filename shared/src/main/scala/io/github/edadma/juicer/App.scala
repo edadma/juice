@@ -76,7 +76,7 @@ object App {
     val conf = new ConfigWrapper(siteconf)
     val rendererData = parseurl(conf.baseURL) getOrElse problem(s"invalid base URL: ${conf.baseURL}")
 
-    show(s"base URL = $rendererData")
+    show(s"base URL = ${rendererData.base}${rendererData.path}")
 
     val site = Process(src1, dst1, conf)
     val partialsLoader: TemplateLoader =
@@ -89,7 +89,8 @@ object App {
         site.shortcodeTemplates find (_.name == name) map (_.template) orElse problem(s"shortcode '$name' not found")
     val preprocessor = new Preprocessor(shortcodes = shortcodesLoader, renderer = templateRenderer)
 
-    for (c: ContentFile <- site.content) {
+    for (c @ ContentFile(_, name, _, _, _, _) <- site.content) {
+      show(s"parse markdown file $name")
       val doc = markdownParser.parse(preprocessor.process(c.source))
 
       c.content = Util.html(doc, 2).trim
@@ -127,12 +128,19 @@ object App {
 
     for (ContentFile(outdir, name, data, _, content, toc) <- site.content) {
       site.layoutTemplates find (_.name == "page") match {
-        case Some(TemplateFile(_, _, template)) =>
+        case Some(TemplateFile(templatePath, templateName, template)) =>
+          show(s"render $name using template ${src1 relativize templatePath resolve templateName}")
+
           val pagedir = outdir resolve name
 
+          show(s"content: create directory $pagedir")
           Files.createDirectories(pagedir)
 
-          val out = new FileOutputStream(pagedir resolve "index.html" toString)
+          val outfile = pagedir resolve "index.html" toString
+
+          show(s"content: write file $outfile")
+
+          val out = new FileOutputStream(outfile)
           val pagedata = Map("site" -> sitedata, "page" -> data, "content" -> content, "toc" -> toc)
 
           templateRenderer.render(pagedata, template, out)
@@ -142,6 +150,8 @@ object App {
     }
 
     for (TemplateFile(path, _, template) <- site.otherTemplates) {
+      show(s"template: write file $path")
+
       val out = new FileOutputStream(path.toString)
 
       templateRenderer.render(Map("site" -> sitedata), template, out)
