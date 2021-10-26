@@ -69,6 +69,7 @@ object Process {
                                       yaml(data),
                                       ((if (first == "---") ""
                                         else first :+ '\n') ++ (lines map (_ :+ '\n') mkString)).trim,
+                                      null,
                                       null)
         }
 
