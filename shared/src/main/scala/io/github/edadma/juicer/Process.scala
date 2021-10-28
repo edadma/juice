@@ -103,10 +103,11 @@ object Process {
           (src == shortcodes || !dir.startsWith(shortcodes))) {
         val l = includeExts(listing, "html", "css", "scss", "sass")
 
-        show(s"identify other templates: ${l map (_.getFileName) mkString ", "}", l.nonEmpty)
+        show(s"other templates: ${l map (_.getFileName) mkString ", "}", l.nonEmpty)
         l foreach { p =>
           val outfile = dst resolve (src relativize p)
 
+          show(s"parse template $p")
           otherTemplates += TemplateFile(outfile, null, templateParser.parse(readFile(p.toString)))
         }
       }
