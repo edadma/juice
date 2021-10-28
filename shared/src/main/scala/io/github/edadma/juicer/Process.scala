@@ -98,7 +98,7 @@ object Process {
         }
 
       if (dir startsWith static) {
-        val subdir = dst resolve (src relativize dir)
+        val subdir = dst resolve (static relativize dir)
 
         show(s"static: create directory $subdir")
         Files.createDirectories(subdir)
@@ -122,14 +122,17 @@ object Process {
                                     "conf",
                                     "hocon")
          else listing filter isFile) foreach { p =>
-          val dp = dst resolve (src relativize p)
+          val dp = dst resolve (static relativize p)
 
           show(s"static: copy $p => $dp")
           Files.copy(p, dp, StandardCopyOption.REPLACE_EXISTING)
         }
       }
 
-      if (src == layouts && src == partials && src == shortcodes && static == src) {
+      if (!(layouts != src && dir.startsWith(layouts)) &&
+          !(partials != src && dir.startsWith(partials)) &&
+          !(shortcodes != src && dir.startsWith(shortcodes)) &&
+          !(static != src && dir.startsWith(static))) {
         val l = filesIncludingExtensions(listing, "html", "css", "scss", "sass")
 
         show(s"other templates: ${l map (_.getFileName) mkString ", "}", l.nonEmpty)
