@@ -32,10 +32,8 @@ object Process {
 
       val listing = list(dir)
 
-      excludeDirs(listing, dst) foreach processDir
-
       if (dir startsWith content)
-        includeExts(listing, "MD", "md", "markdown") foreach { p =>
+        filesIncludingExtensions(listing, "MD", "md", "markdown") foreach { p =>
           val s = readFile(p.toString)
           val lines = scala.io.Source.fromString(s).getLines()
           val (first, data) = {
@@ -75,33 +73,64 @@ object Process {
                                       null)
         }
 
-      includeExts(listing, "YML", "YAML", "yml", "yaml") foreach (p =>
+      filesIncludingExtensions(listing, "YML", "YAML", "yml", "yaml") foreach (p =>
         dataFiles += Data(p.getParent, withoutExtension(p.getFileName.toString), yaml(readFile(p.toString))))
 
       if (dir startsWith layouts)
-        includeExts(listing, "html", "sq") foreach { p =>
+        filesIncludingExtensions(listing, "html", "sq") foreach { p =>
           layoutTemplates += TemplateFile(p.getParent,
                                           withoutExtension(p.getFileName.toString),
                                           templateParser.parse(readFile(p.toString)))
         }
 
       if (dir startsWith partials)
-        includeExts(listing, "html", "sq") foreach { p =>
+        filesIncludingExtensions(listing, "html", "sq") foreach { p =>
           partialTemplates += TemplateFile(p.getParent,
                                            withoutExtension(p.getFileName.toString),
                                            templateParser.parse(readFile(p.toString)))
         }
 
       if (dir startsWith shortcodes)
-        includeExts(listing, "html", "sq") foreach { p =>
+        filesIncludingExtensions(listing, "html", "sq") foreach { p =>
           shortcodeTemplates += TemplateFile(p.getParent,
                                              withoutExtension(p.getFileName.toString),
                                              templateParser.parse(readFile(p.toString)))
         }
 
-      if ((src == layouts || !dir.startsWith(layouts)) && (src == partials || !dir.startsWith(partials)) &&
-          (src == shortcodes || !dir.startsWith(shortcodes))) {
-        val l = includeExts(listing, "html", "css", "scss", "sass")
+      if (dir startsWith static) {
+        val subdir = dst resolve (src relativize dir)
+
+        show(s"static: create directory $subdir")
+        Files.createDirectories(subdir)
+
+        (if (static == src)
+           filesExcludingExtensions(listing,
+                                    "html",
+                                    "sq",
+                                    "css",
+                                    "scss",
+                                    "sass",
+                                    "YML",
+                                    "YAML",
+                                    "yml",
+                                    "yaml",
+                                    "MD",
+                                    "md",
+                                    "markdown",
+                                    "props",
+                                    "properties",
+                                    "conf",
+                                    "hocon")
+         else listing filter isFile) foreach { p =>
+          val dp = dst resolve (src relativize p)
+
+          show(s"static: copy $p => $dp")
+          Files.copy(p, dp, StandardCopyOption.REPLACE_EXISTING)
+        }
+      }
+
+      if (src == layouts && src == partials && src == shortcodes && static == src) {
+        val l = filesIncludingExtensions(listing, "html", "css", "scss", "sass")
 
         show(s"other templates: ${l map (_.getFileName) mkString ", "}", l.nonEmpty)
         l foreach { p =>
@@ -112,48 +141,7 @@ object Process {
         }
       }
 
-      if (dir startsWith static) {
-        if (static == src) {
-          val subdir = dst resolve (src relativize dir)
-
-          show(s"static: create directory $subdir")
-          Files.createDirectories(subdir)
-
-          excludeExts(listing,
-                      "html",
-                      "sq",
-                      "css",
-                      "scss",
-                      "sass",
-                      "YML",
-                      "YAML",
-                      "yml",
-                      "yaml",
-                      "MD",
-                      "md",
-                      "markdown",
-                      "props",
-                      "properties",
-                      "conf",
-                      "hocon") foreach { p =>
-            val dp = dst resolve (src relativize p)
-
-            show(s"static: copy $p => $dp")
-            Files.copy(p, dp, StandardCopyOption.REPLACE_EXISTING)
-          }
-        }
-      } else {
-        val subdir = dst resolve (static relativize dir)
-
-        show(s"static: create directory $subdir")
-        Files.createDirectories(subdir)
-        listing foreach { p =>
-          val dp = dst resolve (static relativize p)
-
-          show(s"static: copy $p => $dp")
-          Files.copy(p, dp, StandardCopyOption.REPLACE_EXISTING)
-        }
-      }
+      dirsExcluding(listing, dst) foreach processDir
 
       show(s"<<< ${dir.getParent}", dir.getParent startsWith src)
     }

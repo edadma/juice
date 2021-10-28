@@ -190,7 +190,7 @@ object App {
   def config(src: Path, base: String): Config = {
     BaseConfigs(base) match {
       case Some(b) =>
-        includeExts(list(src), "json", "conf", "properties", "props", "hocon").foldLeft(b) {
+        filesIncludingExtensions(list(src), "json", "conf", "properties", "props", "hocon").foldLeft(b) {
           case (c, p) => readConfig(p) withFallback c
         }
       case None => problem(s"unknown base configuration: $base")

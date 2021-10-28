@@ -68,13 +68,13 @@ package object juicer {
 
   def list(dir: Path): List[Path] = Files.list(dir).iterator.asScala.toList
 
-  def includeExts(listing: List[Path], exts: String*): List[Path] = {
+  def filesIncludingExtensions(listing: List[Path], exts: String*): List[Path] = {
     val suffixes = exts map ('.' +: _)
 
     listing filter (p => isFile(p) && (suffixes.isEmpty || suffixes.exists(p.getFileName.toString endsWith _))) sortBy (_.getFileName.toString)
   }
 
-  def excludeExts(listing: List[Path], exts: String*): List[Path] = {
+  def filesExcludingExtensions(listing: List[Path], exts: String*): List[Path] = {
     require(exts.nonEmpty)
 
     val suffixes = exts map ('.' +: _)
@@ -82,7 +82,7 @@ package object juicer {
     listing filter (p => isFile(p) && (!suffixes.exists(p.getFileName.toString endsWith _)))
   }
 
-  def excludeDirs(listing: List[Path], exclude: Path*): List[Path] =
+  def dirsExcluding(listing: List[Path], exclude: Path*): List[Path] =
     listing filter (p => isDir(p) && !exclude.contains(p))
 
   lazy val templateFunctions
