@@ -66,12 +66,12 @@ package object juicer {
 
   def show(msg: String, cond: Boolean = true): Unit = if (showSteps && cond) println(msg)
 
-  def list(dir: Path): List[Path] = Files.list(dir).iterator.asScala.toList
+  def list(dir: Path): List[Path] = Files.list(dir).iterator.asScala.toList sortBy (_.getFileName.toString)
 
   def filesIncludingExtensions(listing: List[Path], exts: String*): List[Path] = {
     val suffixes = exts map ('.' +: _)
 
-    listing filter (p => isFile(p) && (suffixes.isEmpty || suffixes.exists(p.getFileName.toString endsWith _))) sortBy (_.getFileName.toString)
+    listing filter (p => isFile(p) && (suffixes.isEmpty || suffixes.exists(p.getFileName.toString endsWith _)))
   }
 
   def filesExcludingExtensions(listing: List[Path], exts: String*): List[Path] = {

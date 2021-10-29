@@ -32,8 +32,13 @@ object Process {
 
       val listing = list(dir)
 
-      if (dir startsWith content)
-        filesIncludingExtensions(listing, "MD", "md", "markdown") foreach { p =>
+      if (dir startsWith content) {
+        val files = filesIncludingExtensions(listing, "md", "markdown", "mkd", "mkdn", "mdown")
+
+        show(s"markdown file(s): ${files map (_.getFileName) mkString ", "}", files.nonEmpty)
+        show("no markdown files", files.isEmpty)
+
+        files foreach { p =>
           val s = readFile(p.toString)
           val lines = scala.io.Source.fromString(s).getLines()
           val (first, data) = {
@@ -72,6 +77,7 @@ object Process {
                                       null,
                                       null)
         }
+      }
 
       filesIncludingExtensions(listing, "YML", "YAML", "yml", "yaml") foreach (p =>
         dataFiles += Data(p.getParent, withoutExtension(p.getFileName.toString), yaml(readFile(p.toString))))
@@ -114,7 +120,9 @@ object Process {
                                     "YAML",
                                     "yml",
                                     "yaml",
-                                    "MD",
+                                    "mkd",
+                                    "mkdn",
+                                    "mdown",
                                     "md",
                                     "markdown",
                                     "props",

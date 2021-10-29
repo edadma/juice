@@ -127,7 +127,7 @@ object App {
     val sitedata = confdata + ("contents" -> contents)
 
     for (ContentFile(outdir, name, data, _, content, toc) <- site.content) {
-      site.layoutTemplates find (_.name == "page") match {
+      site.layoutTemplates find (_.name == "default") match {
         case Some(TemplateFile(templatePath, templateName, template)) =>
           show(s"render $name using template ${src1 relativize templatePath resolve templateName}")
 
@@ -145,7 +145,7 @@ object App {
 
           templateRenderer.render(pagedata, template, out)
           out.close()
-        case None => problem(s"'page' layout not found for laying out '$name'")
+        case None => problem(s"'default' layout not found for laying out '$name'")
       }
     }
 
