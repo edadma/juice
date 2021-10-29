@@ -11,12 +11,14 @@ object BaseConfigs {
           |title =          Untitle
           |author =         Noname
           |contentDir =     .
-          |pageLayoutName = page
+          |homeLayout =     home
+          |fileLayout =     file
+          |folderLayout =   folder
           |layoutDir =      .
           |shortcodeDir =   .
           |partialDir =     .
           |staticDir =      .
-          |themeDir =       themes
+          |themeDir =       
           |publicDir =      public
           """.stripMargin, ConfigSyntax.PROPERTIES),
       "standard" -> ("""
@@ -24,6 +26,7 @@ object BaseConfigs {
          |title =          Untitle
          |author =         Noname
          |contentDir =     content
+         |homeLayout =     home
          |fileLayout =     file
          |folderLayout =   folder
          |layoutDir =      layouts
