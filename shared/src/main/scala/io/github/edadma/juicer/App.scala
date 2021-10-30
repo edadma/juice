@@ -129,22 +129,34 @@ object App {
     for (ContentFile(outdir, name, data, _, content, toc) <- site.content) {
       site.layoutTemplates find (_.name == "default") match {
         case Some(TemplateFile(templatePath, templateName, template)) =>
-          show(s"render $name using template ${src1 relativize templatePath resolve templateName}")
+          show(s"render $name using ${src1 relativize templatePath resolve templateName}")
 
-          val pagedir = outdir resolve name
+          if (name == "index") {
+            val outfile = outdir resolve "index.html" toString
 
-          show(s"content: create directory $pagedir")
-          Files.createDirectories(pagedir)
+            show(s"content: write file $outfile")
 
-          val outfile = pagedir resolve "index.html" toString
+            val out = new FileOutputStream(outfile)
+            val pagedata = Map("site" -> sitedata, "page" -> data, "content" -> content, "toc" -> toc)
 
-          show(s"content: write file $outfile")
+            templateRenderer.render(pagedata, template, out)
+            out.close()
+          } else {
+            val pagedir = outdir resolve name
 
-          val out = new FileOutputStream(outfile)
-          val pagedata = Map("site" -> sitedata, "page" -> data, "content" -> content, "toc" -> toc)
+            show(s"content: create directory $pagedir")
+            Files.createDirectories(pagedir)
 
-          templateRenderer.render(pagedata, template, out)
-          out.close()
+            val outfile = pagedir resolve "index.html" toString
+
+            show(s"content: write file $outfile")
+
+            val out = new FileOutputStream(outfile)
+            val pagedata = Map("site" -> sitedata, "page" -> data, "content" -> content, "toc" -> toc)
+
+            templateRenderer.render(pagedata, template, out)
+            out.close()
+          }
         case None => problem(s"'default' layout not found for laying out '$name'")
       }
     }
