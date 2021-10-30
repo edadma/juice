@@ -18,8 +18,7 @@ object Process {
     val layouts = src resolve conf.path.layoutDir.normalize
     val partials = src resolve conf.path.partialDir.normalize
     val shortcodes = src resolve conf.path.shortcodeDir.normalize
-    val contentFiles = new ListBuffer[ContentFile]
-    val navItems = new ListBuffer[Nav]
+    val contentItems = new ListBuffer[ContentItem]
     val dataFiles = new ListBuffer[Data]
     val layoutTemplates = new ListBuffer[TemplateFile]
     val partialTemplates = new ListBuffer[TemplateFile]
@@ -35,9 +34,16 @@ object Process {
 
       if (dir startsWith content) {
         val files = filesIncludingExtensions(listing, "md", "markdown", "mkd", "mkdn", "mdown")
+        val outdir = dst resolve (content relativize dir)
 
-        show(s"markdown file(s): ${files map (_.getFileName) mkString ", "}", files.nonEmpty)
-        show("no markdown files", files.isEmpty)
+        // todo: treat index.md content files in a special way associated to ContentFolder items
+        if (outdir != dst) {
+          show(s"content subfolder: $outdir")
+          contentItems += ContentFolder(outdir)
+        }
+
+        show(s"content file(s): ${files map (_.getFileName) mkString ", "}", files.nonEmpty)
+        show("no content files", files.isEmpty)
 
         files foreach { p =>
           val s = readFile(p.toString)
@@ -68,42 +74,38 @@ object Process {
             }
           }
 
-          val outdir = dst resolve (content relativize p.getParent)
           val name = withoutExtension(p.getFileName.toString)
 
-          contentFiles += ContentFile(outdir,
+          contentItems += ContentFile(outdir,
                                       name,
                                       yaml(data),
                                       ((if (first == "---") ""
                                         else first :+ '\n') ++ (lines map (_ :+ '\n') mkString)).trim,
                                       null,
                                       null)
-
-//          if (name.head.isDigit)
-//            navItems += Link()
         }
       }
 
       filesIncludingExtensions(listing, "YML", "YAML", "yml", "yaml") foreach (p =>
-        dataFiles += Data(p.getParent, withoutExtension(p.getFileName.toString), yaml(readFile(p.toString))))
+        dataFiles += Data(dir, withoutExtension(p.getFileName.toString), yaml(readFile(p.toString))))
 
       if (dir startsWith layouts)
         filesIncludingExtensions(listing, "html", "sq") foreach { p =>
-          layoutTemplates += TemplateFile(p.getParent,
+          layoutTemplates += TemplateFile(dir,
                                           withoutExtension(p.getFileName.toString),
                                           templateParser.parse(readFile(p.toString)))
         }
 
       if (dir startsWith partials)
         filesIncludingExtensions(listing, "html", "sq") foreach { p =>
-          partialTemplates += TemplateFile(p.getParent,
+          partialTemplates += TemplateFile(dir,
                                            withoutExtension(p.getFileName.toString),
                                            templateParser.parse(readFile(p.toString)))
         }
 
       if (dir startsWith shortcodes)
         filesIncludingExtensions(listing, "html", "sq") foreach { p =>
-          shortcodeTemplates += TemplateFile(p.getParent,
+          shortcodeTemplates += TemplateFile(dir,
                                              withoutExtension(p.getFileName.toString),
                                              templateParser.parse(readFile(p.toString)))
         }
@@ -163,7 +165,7 @@ object Process {
     }
 
     processDir(src)
-    Site(contentFiles.toList,
+    Site(contentItems.toList,
          dataFiles.toList,
          layoutTemplates.toList,
          partialTemplates.toList,
@@ -181,16 +183,14 @@ object Process {
 
 case class Data(parent: Path, name: String, data: Any)
 
+trait ContentItem
 case class ContentFile(outdir: Path, name: String, page: Any, source: String, var content: String, var toc: TOC)
+    extends ContentItem
+case class ContentFolder(dir: Path) extends ContentItem
 
 case class TemplateFile(path: Path, name: String, template: TemplateAST)
 
-trait Nav
-case class Link(text: String, path: Path) extends Nav
-case class Label(text: String) extends Nav
-
-case class Site(content: List[ContentFile],
-                nav: List[Nav],
+case class Site(content: List[ContentItem],
                 data: List[Data],
                 layoutTemplates: List[TemplateFile],
                 partialTemplates: List[TemplateFile],
