@@ -19,6 +19,7 @@ object Process {
     val partials = src resolve conf.path.partialDir.normalize
     val shortcodes = src resolve conf.path.shortcodeDir.normalize
     val contentFiles = new ListBuffer[ContentFile]
+    val navItems = new ListBuffer[Nav]
     val dataFiles = new ListBuffer[Data]
     val layoutTemplates = new ListBuffer[TemplateFile]
     val partialTemplates = new ListBuffer[TemplateFile]
@@ -68,14 +69,18 @@ object Process {
           }
 
           val outdir = dst resolve (content relativize p.getParent)
+          val name = withoutExtension(p.getFileName.toString)
 
           contentFiles += ContentFile(outdir,
-                                      withoutExtension(p.getFileName.toString),
+                                      name,
                                       yaml(data),
                                       ((if (first == "---") ""
                                         else first :+ '\n') ++ (lines map (_ :+ '\n') mkString)).trim,
                                       null,
                                       null)
+
+//          if (name.head.isDigit)
+//            navItems += Link()
         }
       }
 
@@ -180,7 +185,12 @@ case class ContentFile(outdir: Path, name: String, page: Any, source: String, va
 
 case class TemplateFile(path: Path, name: String, template: TemplateAST)
 
+trait Nav
+case class Link(text: String, path: Path) extends Nav
+case class Label(text: String) extends Nav
+
 case class Site(content: List[ContentFile],
+                nav: List[Nav],
                 data: List[Data],
                 layoutTemplates: List[TemplateFile],
                 partialTemplates: List[TemplateFile],
