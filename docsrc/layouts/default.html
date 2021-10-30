@@ -3,14 +3,10 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Hello Bulma!</title>
-    <link
-        href="https://unpkg.com/sanitize.css"
-        rel="stylesheet"
-    />
-    <link rel="stylesheet" href="styles/reset.css">
-    <link rel="stylesheet" href="styles/bulma.min.css">
-    <link rel="stylesheet" href="styles/style.css">
+    <title>Juicer Documentation</title>
+    <link rel="stylesheet" href="{{ 'styles/reset.css' | absURL }}">
+    <link rel="stylesheet" href="{{ 'styles/bulma.min.css' | absURL }}">
+    <link rel="stylesheet" href="{{ 'styles/style.css' | absURL }}">
     <script src="https://kit.fontawesome.com/8a5bb05f66.js" crossorigin="anonymous"></script>
   </head>
 
@@ -19,6 +15,7 @@
       <div class="navbar-brand">
         <a class="navbar-item" href="https://bulma.io">
           <img src="https://bulma.io/images/bulma-logo.png" alt="Bulma: a modern CSS framework based on Flexbox" width="112" height="28">
+          <img src="{{ 'images/juicer-logo-name-50.png' | absURL }}" alt="Juicer: a static site generator">
         </a>
       </div>
 
@@ -94,7 +91,7 @@
 
         <div class="column is-5">
           <div class="content has-text-justified">
-            {{ .page.content }}
+            {{ .content }}
           </div>
         </div>
 
