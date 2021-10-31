@@ -7,10 +7,12 @@ object BaseConfigs {
   private val configs =
     Map(
       "simple" -> ("""
-          |baseURL =        http://localhost:8080
+          |baseURL =        "http://localhost:8080"
           |title =          Untitle
           |author =         Noname
           |contentDir =     .
+          |htmlDir =        ""
+          |stripPrefix =    false
           |homeLayout =     home
           |fileLayout =     file
           |folderLayout =   folder
@@ -18,14 +20,16 @@ object BaseConfigs {
           |shortcodeDir =   .
           |partialDir =     .
           |staticDir =      .
-          |themeDir =       
+          |themeDir =       ""       
           |publicDir =      public
-          """.stripMargin, ConfigSyntax.PROPERTIES),
+          """.stripMargin, ConfigSyntax.CONF),
       "standard" -> ("""
-         |baseURL =        http://localhost:8080
+         |baseURL =        "http://localhost:8080"
          |title =          Untitle
          |author =         Noname
          |contentDir =     content
+         |htmlDir =        html
+         |stripPrefix =    true
          |homeLayout =     home
          |fileLayout =     file
          |folderLayout =   folder
@@ -35,7 +39,7 @@ object BaseConfigs {
          |staticDir =      static
          |themeDir =       themes
          |publicDir =      public
-         """.stripMargin, ConfigSyntax.PROPERTIES)
+         """.stripMargin, ConfigSyntax.CONF)
     )
 
   def apply(name: String): Option[Config] =

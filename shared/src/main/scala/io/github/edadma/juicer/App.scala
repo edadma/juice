@@ -122,6 +122,7 @@ object App {
       case page @ ContentFile(outdir, _, _, _, _, _) =>
         val rel = dst1 relativize outdir
 
+        println("rel", outdir, rel)
         put(contents, rel.iterator.asScala.toList map (_.toString), page)
       case _: ContentFolder =>
     }

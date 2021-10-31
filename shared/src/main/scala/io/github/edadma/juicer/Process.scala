@@ -15,6 +15,8 @@ object Process {
 
   def apply(src: Path, dst: Path, conf: ConfigWrapper): Site = {
     val content = src resolve conf.path.contentDir.normalize
+    val html = conf.htmlDir
+    val stripPrefix = conf.boolean.stripPrefix
     val static = src resolve conf.path.staticDir.normalize
     val layouts = src resolve conf.path.layoutDir.normalize
     val partials = src resolve conf.path.partialDir.normalize
@@ -43,9 +45,11 @@ object Process {
             val prev = contentItems.last.outdir
 
             if (prev.getNameCount >= uncleaned.getNameCount)
-              Paths.get(File.separator) resolve prev.subpath(0, uncleaned.getNameCount) resolve clean(
-                uncleaned.getFileName.toString)
-            else prev resolve "html" resolve clean(uncleaned.getFileName.toString)
+              Paths.get(File.separator) resolve prev.subpath(0, uncleaned.getNameCount) resolve
+                clean(uncleaned.getFileName.toString, stripPrefix = true)
+            else
+              (if (html == "") prev else prev resolve html) resolve
+                clean(uncleaned.getFileName.toString, stripPrefix = true)
           }
         }
 
@@ -87,13 +91,15 @@ object Process {
             }
           }
 
-          contentItems += ContentFile(outdir,
-                                      clean(withoutExtension(p.getFileName.toString)),
-                                      yaml(data),
-                                      ((if (first == "---") ""
-                                        else first :+ '\n') ++ (lines map (_ :+ '\n') mkString)).trim,
-                                      null,
-                                      null)
+          contentItems += ContentFile(
+            outdir,
+            clean(withoutExtension(p.getFileName.toString), stripPrefix),
+            yaml(data),
+            ((if (first == "---") ""
+              else first :+ '\n') ++ (lines map (_ :+ '\n') mkString)).trim,
+            null,
+            null
+          )
         }
       }
 
@@ -190,11 +196,13 @@ object Process {
       case dot => filename substring (0, dot)
     }
 
-  def clean(s: String): String = {
+  def clean(s: String, stripPrefix: Boolean): String = {
     val buf = new StringBuilder(s)
 
-    while (buf.nonEmpty && buf.head.isDigit) buf.deleteCharAt(0)
-    while (buf.nonEmpty && !buf.head.isLetterOrDigit) buf.deleteCharAt(0)
+    if (stripPrefix) {
+      while (buf.nonEmpty && buf.head.isDigit) buf.deleteCharAt(0)
+      while (buf.nonEmpty && !buf.head.isLetterOrDigit) buf.deleteCharAt(0)
+    }
 
     @tailrec
     def clean(from: Int): Unit =
