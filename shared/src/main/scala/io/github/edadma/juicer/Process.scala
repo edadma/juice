@@ -42,15 +42,14 @@ object Process {
 
           if (contentItems.isEmpty) {
             if (uncleaned == dst) dst
-            else {
+            else
               (if (html == "") dst else dst resolve html) resolve
                 clean(uncleaned.getFileName.toString, stripPrefix = true)
-            }
           } else {
             val prev = contentItems.last.outdir
 
             if (prev.getNameCount >= uncleaned.getNameCount)
-              Paths.get(File.separator) resolve prev.subpath(0, uncleaned.getNameCount - (if (html == "") 0 else 1)) resolve
+              Paths.get(File.separator) resolve prev.subpath(0, uncleaned.getNameCount - (if (html == "") 1 else 0)) resolve
                 clean(uncleaned.getFileName.toString, stripPrefix = true)
             else
               (if (html == "") prev else prev resolve html) resolve
@@ -64,7 +63,6 @@ object Process {
           contentItems += ContentFolder(outdir)
         }
 
-        println("outdir", outdir, dir)
         show(s"content file(s): ${files map (_.getFileName) mkString ", "}", files.nonEmpty)
         show("no content files", files.isEmpty)
 
