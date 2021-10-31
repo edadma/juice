@@ -5,7 +5,8 @@ import io.github.edadma.cross_platform.readFile
 import io.github.edadma.squiggly.TemplateAST
 import io.github.edadma.squiggly.platformSpecific.yaml
 
-import java.nio.file.{Files, Path, StandardCopyOption}
+import java.io.File
+import java.nio.file.{Files, Path, Paths, StandardCopyOption}
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
 import scala.language.postfixOps
@@ -34,11 +35,23 @@ object Process {
 
       if (dir startsWith content) {
         val files = filesIncludingExtensions(listing, "md", "markdown", "mkd", "mkdn", "mdown")
-        val outdir = dst resolve (content relativize dir)
+        val outdir = {
+          val uncleaned = dst resolve (content relativize dir)
+
+          if (contentItems.isEmpty) dst
+          else {
+            val prev = contentItems.last.outdir
+
+            if (prev.getNameCount >= uncleaned.getNameCount)
+              Paths.get(File.separator) resolve prev.subpath(0, uncleaned.getNameCount) resolve clean(
+                uncleaned.getFileName.toString)
+            else prev resolve "html" resolve clean(uncleaned.getFileName.toString)
+          }
+        }
 
         // todo: treat index.md content files in a special way associated to ContentFolder items
         if (outdir != dst) {
-          show(s"content subfolder: $outdir")
+          show(s"content destination subfolder: $outdir")
           contentItems += ContentFolder(outdir)
         }
 
@@ -74,10 +87,8 @@ object Process {
             }
           }
 
-          val name = withoutExtension(p.getFileName.toString)
-
           contentItems += ContentFile(outdir,
-                                      name,
+                                      clean(withoutExtension(p.getFileName.toString)),
                                       yaml(data),
                                       ((if (first == "---") ""
                                         else first :+ '\n') ++ (lines map (_ :+ '\n') mkString)).trim,
@@ -179,14 +190,41 @@ object Process {
       case dot => filename substring (0, dot)
     }
 
+  def clean(s: String): String = {
+    val buf = new StringBuilder(s)
+
+    while (buf.nonEmpty && buf.head.isDigit) buf.deleteCharAt(0)
+    while (buf.nonEmpty && !buf.head.isLetterOrDigit) buf.deleteCharAt(0)
+
+    @tailrec
+    def clean(from: Int): Unit =
+      buf.indexWhere(!_.isLetterOrDigit, from) match {
+        case -1 =>
+        case idx =>
+          buf.indexWhere(_.isLetterOrDigit, idx) match {
+            case -1 =>
+              buf.delete(idx, buf.length)
+            case end =>
+              buf(idx) = '-'
+              buf.delete(idx + 1, end)
+              clean(idx + 1)
+          }
+      }
+
+    clean(0)
+
+    if (buf.isEmpty) "-"
+    else buf.toString
+  }
+
 }
 
 case class Data(parent: Path, name: String, data: Any)
 
-trait ContentItem
+trait ContentItem { val outdir: Path }
 case class ContentFile(outdir: Path, name: String, page: Any, source: String, var content: String, var toc: TOC)
     extends ContentItem
-case class ContentFolder(dir: Path) extends ContentItem
+case class ContentFolder(outdir: Path) extends ContentItem
 
 case class TemplateFile(path: Path, name: String, template: TemplateAST)
 

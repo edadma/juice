@@ -118,10 +118,12 @@ object App {
           }
       }
 
-    for (page @ ContentFile(outdir, _, _, _, _, _) <- site.content) {
-      val rel = dst1 relativize outdir
+    site.content foreach {
+      case page @ ContentFile(outdir, _, _, _, _, _) =>
+        val rel = dst1 relativize outdir
 
-      put(contents, rel.iterator.asScala.toList map (_.toString), page)
+        put(contents, rel.iterator.asScala.toList map (_.toString), page)
+      case _: ContentFolder =>
     }
 
     val sitedata = confdata + ("contents" -> contents)
