@@ -58,31 +58,19 @@
       <div class="columns">
         <div class="column is-2 is-offset-1" style="height:80vh; position: sticky; top: 3.2rem;">
           <aside class="menu">
-            <p class="menu-label">
-              General
-            </p>
-            <ul class="menu-list">
-              <li><a>Dashboard</a></li>
-              <li><a>Customers</a></li>
-            </ul>
-            <p class="menu-label">
-              Administration
-            </p>
-            <ul class="menu-list">
-              <li><a>Team Settings</a></li>
-              <li><a>Manage Your Team</a></li>
-              <li><a>Invitations</a></li>
-              <li><a>Cloud Storage Environment Settings</a></li>
-              <li><a>Authentication</a></li>
-            </ul>
-            <p class="menu-label">
-              Transactions
-            </p>
-            <ul class="menu-list">
-              <li><a>Payments</a></li>
-              <li><a>Transfers</a></li>
-              <li><a>Balance</a></li>
-            </ul>
+            {{- for .site.toc }}
+              {{- if .label }}
+                <p class="menu-label">
+                  {{ .label }}
+                </p>
+              {{- else }}
+                <ul class="menu-list">
+                  {{- for .headings }}
+                    <li><a>{{ . }}</a></li>
+                  {{- end }}
+                </ul>
+              {{- end }}
+            {{- end }}
           </aside>
         </div>
 

@@ -6,7 +6,7 @@ import scala.jdk.CollectionConverters._
 import scala.language.postfixOps
 import io.github.edadma.cross_platform.readFile
 import io.github.edadma.squiggly.{TemplateLoader, TemplateRenderer}
-import io.github.edadma.commonmark.Util
+import io.github.edadma.commonmark
 import org.ekrich.config.{Config, ConfigFactory, ConfigParseOptions, ConfigSyntax, ConfigValueFactory}
 
 import java.io.FileOutputStream
@@ -92,47 +92,70 @@ object App {
 
     for (c @ ContentFile(_, name, _, _, _, _) <- site.content) {
       show(s"parse markdown file $name")
+
       val doc = markdownParser.parse(preprocessor.process(c.source))
 
-      c.content = Util.html(doc, 2).trim
-      c.toc = Util.toc(doc)
+      c.content = commonmark.Util.html(doc, 2).trim
+      c.toc = commonmark.Util.toc(doc)
     }
+
+//    @tailrec
+//    def put(map: mutable.LinkedHashMap[String, Any], parent: List[String], content: ContentFile): Unit =
+//      parent match {
+//        case Nil => map(content.name) = content
+//        case h :: t =>
+//          map get h match {
+//            case Some(m: mutable.LinkedHashMap[_, _]) =>
+//              put(m.asInstanceOf[mutable.LinkedHashMap[String, Any]], t, content)
+//            case Some(_: ContentFile) =>
+//              problem(s"unexpected content file in place of directory in contents data structure: $h")
+//            case Some(_) => problem("problem")
+//            case None =>
+//              val m = new mutable.LinkedHashMap[String, Any]
+//
+//              map(h) = m
+//              put(m, t, content)
+//          }
+//      }
+//
+//    val contents = new mutable.LinkedHashMap[String, Any]
+
+    trait TOCItem
+    case class TOCLabel(label: String) extends TOCItem
+    case class TOCList(headings: List[String]) extends TOCItem
+
+    val sitetoc = new ListBuffer[TOCItem]
+
+    //    val html = conf.htmlDir
+//
+//    site.content foreach {
+//      case page @ ContentFile(outdir, _, _, _, _, toc) =>
+////        val rel = (if (html == "") dst1 else dst1 resolve html) relativize outdir
+////
+////        put(contents, rel.iterator.asScala.toList map (_.toString), page)
+//        sitetoc += TOCItem("file", commonmark.Util.html(toc.headings.head.heading.contents, 2).trim)
+//      case ContentFolder(outdir) => sitetoc += TOCItem("folder", outdir.getFileName.toString)
+//    }
+//
+//    val sitedata = confdata + /*("contents" -> contents) + */ ("toc" -> sitetoc)
 
     @tailrec
-    def put(map: mutable.LinkedHashMap[String, Any], parent: List[String], content: ContentFile): Unit =
-      parent match {
-        case Nil => map(content.name) = content
-        case h :: t =>
-          map get h match {
-            case Some(m: mutable.LinkedHashMap[_, _]) =>
-              put(m.asInstanceOf[mutable.LinkedHashMap[String, Any]], t, content)
-            case Some(_: ContentFile) =>
-              problem(s"unexpected content file in place of directory in contents data structure: $h")
-            case Some(_) => problem("problem")
-            case None =>
-              val m = new mutable.LinkedHashMap[String, Any]
+    def mktoc(l: List[ContentItem]): Unit =
+      l match {
+        case Nil =>
+        case ContentFolder(outdir) :: t =>
+          sitetoc += TOCLabel(outdir.getFileName.toString)
+          mktoc(t)
+        case (_: ContentFile) :: _ =>
+          val (headings: List[ContentFile], rest) = l span (_.isInstanceOf[ContentFile])
 
-              map(h) = m
-              put(m, t, content)
-          }
+          sitetoc += TOCList(headings map (h => commonmark.Util.html(h.toc.headings.head.heading.contents, 2).trim))
+          mktoc(rest)
       }
 
-    val contents = new mutable.LinkedHashMap[String, Any]
+    mktoc(site.content.tail)
 
-    case class TOCItem(typ: String, name: String)
-
-    val toc = new ListBuffer[TOCItem]
-
-    site.content foreach {
-      case page @ ContentFile(outdir, _, _, _, _, toc) =>
-        val rel = dst1 relativize outdir
-
-        put(contents, rel.iterator.asScala.toList map (_.toString), page)
-//        toc += TOCItem("file", toc.headings.head.heading.)
-      case _: ContentFolder =>
-    }
-
-    val sitedata = confdata + ("contents" -> contents) + ("toc" -> site.content)
+    val sitedata = confdata + ("toc" -> sitetoc.toList)
     val defaultLayout = conf.defaultLayout
 
     for (ContentFile(outdir, name, data, _, content, toc) <- site.content) {
