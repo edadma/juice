@@ -12,6 +12,7 @@ import org.ekrich.config.{Config, ConfigFactory, ConfigParseOptions, ConfigSynta
 import java.io.FileOutputStream
 import scala.annotation.tailrec
 import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
 
 object App {
 
@@ -97,8 +98,6 @@ object App {
       c.toc = Util.toc(doc)
     }
 
-    val contents = new mutable.LinkedHashMap[String, Any]
-
     @tailrec
     def put(map: mutable.LinkedHashMap[String, Any], parent: List[String], content: ContentFile): Unit =
       parent match {
@@ -118,18 +117,26 @@ object App {
           }
       }
 
+    val contents = new mutable.LinkedHashMap[String, Any]
+
+    case class TOCItem(typ: String, name: String)
+
+    val toc = new ListBuffer[TOCItem]
+
     site.content foreach {
-      case page @ ContentFile(outdir, name, _, _, _, _) =>
+      case page @ ContentFile(outdir, _, _, _, _, toc) =>
         val rel = dst1 relativize outdir
 
         put(contents, rel.iterator.asScala.toList map (_.toString), page)
+//        toc += TOCItem("file", toc.headings.head.heading.)
       case _: ContentFolder =>
     }
 
-    val sitedata = confdata + ("contents" -> contents)
+    val sitedata = confdata + ("contents" -> contents) + ("toc" -> site.content)
+    val defaultLayout = conf.defaultLayout
 
     for (ContentFile(outdir, name, data, _, content, toc) <- site.content) {
-      site.layoutTemplates find (_.name == "default") match {
+      site.layoutTemplates find (_.name == defaultLayout) match {
         case Some(TemplateFile(templatePath, templateName, template)) =>
           show(s"render $name using ${src1 relativize templatePath resolve templateName}")
 
