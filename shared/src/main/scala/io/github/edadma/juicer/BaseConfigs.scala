@@ -7,39 +7,56 @@ object BaseConfigs {
   private val configs =
     Map(
       "simple" -> ("""
-          |baseURL =        "http://localhost:8080"
-          |title =          Untitle
-          |author =         Noname
-          |contentDir =     .
-          |htmlDir =        ""
-          |stripPrefix =    false
-          |homeLayout =     home
-          |fileLayout =     file
-          |folderLayout =   folder
-          |layoutDir =      .
-          |shortcodeDir =   .
-          |partialDir =     .
-          |staticDir =      .
-          |themeDir =       ""       
-          |publicDir =      public
-          """.stripMargin, ConfigSyntax.CONF),
+        |baseURL =        "http://localhost:8080"
+        |title =          Untitled
+        |author =         Unamed
+        |contentDir =     .
+        |htmlDir =        ""
+        |stripPrefix =    false
+        |homeLayout =     home
+        |fileLayout =     file
+        |folderLayout =   folder
+        |layoutDir =      .
+        |shortcodeDir =   .
+        |partialDir =     .
+        |staticDir =      .
+        |themeDir =       ""       
+        |publicDir =      public
+        """.stripMargin, ConfigSyntax.CONF),
       "standard" -> ("""
-         |baseURL =        "http://localhost:8080"
-         |title =          Untitle
-         |author =         Noname
-         |contentDir =     content
-         |htmlDir =        html
-         |stripPrefix =    true
-         |homeLayout =     home
-         |fileLayout =     file
-         |folderLayout =   folder
-         |layoutDir =      layouts
-         |shortcodeDir =   shortcodes
-         |partialDir =     partials
-         |staticDir =      static
-         |themeDir =       themes
-         |publicDir =      public
-         """.stripMargin, ConfigSyntax.CONF)
+        |baseURL =        "http://localhost:8080"
+        |title =          Untitled
+        |author =         Unamed
+        |contentDir =     content
+        |htmlDir =        html
+        |stripPrefix =    true
+        |homeLayout =     home
+        |fileLayout =     file
+        |folderLayout =   folder
+        |layoutDir =      layouts
+        |shortcodeDir =   shortcodes
+        |partialDir =     partials
+        |staticDir =      static
+        |themeDir =       themes
+        |publicDir =      public
+        """.stripMargin, ConfigSyntax.CONF),
+      "norme" -> ("""
+        |baseURL =        "http://localhost:8080"
+        |title =          Sans titre
+        |author =         Sans nom
+        |contentDir =     contentu
+        |htmlDir =        html
+        |stripPrefix =    true
+        |homeLayout =     accueil
+        |fileLayout =     fichier
+        |folderLayout =   dossier
+        |layoutDir =      mises-en-page
+        |shortcodeDir =   codes-courts
+        |partialDir =     partiels
+        |staticDir =      statique
+        |themeDir =       thèmes
+        |publicDir =      public
+        """.stripMargin, ConfigSyntax.CONF)
     )
 
   def apply(name: String): Option[Config] =
