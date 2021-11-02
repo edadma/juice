@@ -7,6 +7,7 @@ import scala.language.postfixOps
 import io.github.edadma.cross_platform.readFile
 import io.github.edadma.squiggly.{TemplateLoader, TemplateRenderer}
 import io.github.edadma.commonmark
+import io.github.edadma.commonmark.Heading
 import org.ekrich.config.{Config, ConfigFactory, ConfigParseOptions, ConfigSyntax, ConfigValueFactory}
 
 import java.io.FileOutputStream
@@ -163,32 +164,37 @@ object App {
         case Some(TemplateFile(templatePath, templateName, template)) =>
           show(s"render $name using ${src1 relativize templatePath resolve templateName}")
 
-          if (name == "index") {
-            val outfile = outdir resolve "index.html" toString
+          val outfile =
+            if (name == "index") outdir resolve "index.html" toString
+            else {
+              val pagedir = outdir resolve name
 
-            show(s"content: write file $outfile")
+              show(s"content: create directory $pagedir")
+              Files.createDirectories(pagedir)
+              pagedir resolve "index.html" toString
+            }
 
-            val out = new FileOutputStream(outfile)
-            val pagedata = Map("site" -> sitedata, "page" -> data, "content" -> content, "toc" -> toc)
+          show(s"content: write file $outfile")
 
-            templateRenderer.render(pagedata, template, out)
-            out.close()
-          } else {
-            val pagedir = outdir resolve name
+          case class SubHeading(heading: String, id: String, sub: List[SubHeading])
 
-            show(s"content: create directory $pagedir")
-            Files.createDirectories(pagedir)
+          def subheadings(l: List[Heading]): List[SubHeading] =
+            l map (h =>
+              SubHeading(commonmark.Util.html(h.heading.contents, 2).trim,
+                         h.heading.id.get,
+                         subheadings(h.sub.headings)))
 
-            val outfile = pagedir resolve "index.html" toString
-
-            show(s"content: write file $outfile")
-
-            val out = new FileOutputStream(outfile)
-            val pagedata = Map("site" -> sitedata, "page" -> data, "content" -> content, "toc" -> toc)
-
-            templateRenderer.render(pagedata, template, out)
-            out.close()
+          val out = new FileOutputStream(outfile)
+          val sub = {
+            toc.headings.headOption match {
+              case Some(h) => subheadings(h.sub.headings)
+              case None    => Nil
+            }
           }
+          val pagedata = Map("site" -> sitedata, "page" -> data, "content" -> content, "toc" -> toc, "sub" -> sub)
+
+          templateRenderer.render(pagedata, template, out)
+          out.close()
         case None => problem(s"'default' layout not found for laying out '$name'")
       }
     }
