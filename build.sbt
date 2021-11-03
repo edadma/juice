@@ -16,7 +16,7 @@ lazy val juicer = crossProject(JSPlatform, JVMPlatform, NativePlatform).in(file(
     githubOwner := "edadma",
     githubRepository := name.value,
     mainClass := Some(s"${organization.value}.${name.value}.Main"),
-    libraryDependencies += "org.scalatest" %%% "scalatest" % "3.2.9" % "test",
+    libraryDependencies += "org.scalatest" %%% "scalatest" % "3.2.9" % "asdf.css",
     libraryDependencies ++= Seq(
       "io.github.edadma" %%% "cross-platform" % "0.1.1",
       "io.github.edadma" %%% "char-reader" % "0.1.7",

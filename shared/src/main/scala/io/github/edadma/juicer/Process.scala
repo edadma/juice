@@ -8,6 +8,7 @@ import io.github.edadma.squiggly.platformSpecific.yaml
 import java.io.File
 import java.nio.file.{Files, Path, Paths, StandardCopyOption}
 import scala.annotation.tailrec
+import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.language.postfixOps
 
@@ -23,9 +24,9 @@ object Process {
     val shortcodes = src resolve conf.path.shortcodeDir.normalize
     val contentItems = new ListBuffer[ContentItem]
     val dataFiles = new ListBuffer[Data]
-    val layoutTemplates = new ListBuffer[TemplateFile]
-    val partialTemplates = new ListBuffer[TemplateFile]
-    val shortcodeTemplates = new ListBuffer[TemplateFile]
+    val layoutTemplates = new mutable.HashMap[List[String], TemplateFile]
+    val partialTemplates = new mutable.HashMap[String, TemplateFile]
+    val shortcodeTemplates = new mutable.HashMap[String, TemplateFile]
     val otherTemplates = new ListBuffer[TemplateFile]
 
     if (!isDir(content)) problem(s"can't read content directory: $content")
@@ -57,7 +58,7 @@ object Process {
           }
         }
 
-        // todo: treat index.md content files in a special way associated to ContentFolder items
+        // todo: treat _index.md content files in a special way associated to ContentFolder items
         if (outdir != dst) {
           show(s"content destination subfolder: $outdir")
           contentItems += ContentFolder(outdir)
@@ -112,23 +113,18 @@ object Process {
 
       if (dir startsWith layouts)
         filesIncludingExtensions(listing, "html", "sq") foreach { p =>
-          layoutTemplates += TemplateFile(dir,
-                                          withoutExtension(p.getFileName.toString),
-                                          templateParser.parse(readFile(p.toString)))
+          layoutTemplates += TemplateFile(dir, withoutExtension(p.getFileName.toString), null)
         }
+// templateParser.parse(readFile(p.toString))
 
       if (dir startsWith partials)
         filesIncludingExtensions(listing, "html", "sq") foreach { p =>
-          partialTemplates += TemplateFile(dir,
-                                           withoutExtension(p.getFileName.toString),
-                                           templateParser.parse(readFile(p.toString)))
+          partialTemplates += TemplateFile(dir, withoutExtension(p.getFileName.toString), null)
         }
 
       if (dir startsWith shortcodes)
         filesIncludingExtensions(listing, "html", "sq") foreach { p =>
-          shortcodeTemplates += TemplateFile(dir,
-                                             withoutExtension(p.getFileName.toString),
-                                             templateParser.parse(readFile(p.toString)))
+          shortcodeTemplates += TemplateFile(dir, withoutExtension(p.getFileName.toString), null)
         }
 
       if (dir startsWith static) {
@@ -188,9 +184,9 @@ object Process {
     processDir(src)
     Site(contentItems.toList,
          dataFiles.toList,
-         layoutTemplates.toList,
-         partialTemplates.toList,
-         shortcodeTemplates.toList,
+         layoutTemplates.toMap,
+         partialTemplates.toMap,
+         shortcodeTemplates.toMap,
          otherTemplates.toList)
   }
 
@@ -238,11 +234,11 @@ case class ContentFile(outdir: Path, name: String, page: Any, source: String, va
     extends ContentItem
 case class ContentFolder(outdir: Path) extends ContentItem
 
-case class TemplateFile(path: Path, name: String, template: TemplateAST)
+case class TemplateFile(path: Path, name: String, var template: TemplateAST)
 
 case class Site(content: List[ContentItem],
                 data: List[Data],
-                layoutTemplates: List[TemplateFile],
-                partialTemplates: List[TemplateFile],
-                shortcodeTemplates: List[TemplateFile],
+                layoutTemplates: Map[List[String], TemplateFile],
+                partialTemplates: Map[String, TemplateFile],
+                shortcodeTemplates: Map[String, TemplateFile],
                 otherTemplates: List[TemplateFile])

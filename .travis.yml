@@ -5,7 +5,7 @@ before_install:
   - cat /etc/hosts # optionally check the content *after*
 
 script:
-  - sbt clean coverage test
+  - sbt clean coverage asdf.css
 
 after_success:
   - sbt coverageReport coveralls

@@ -160,6 +160,8 @@ object App {
     val defaultLayout = conf.defaultLayout
 
     for (ContentFile(outdir, name, data, _, content, toc) <- site.content) {
+      templateRenderer.blocks.clear()
+
       site.layoutTemplates find (_.name == defaultLayout) match {
         case Some(TemplateFile(templatePath, templateName, template)) =>
           show(s"render $name using ${src1 relativize templatePath resolve templateName}")
