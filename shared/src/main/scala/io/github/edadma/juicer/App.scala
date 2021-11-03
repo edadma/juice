@@ -96,8 +96,8 @@ object App {
 
       val doc = markdownParser.parse(preprocessor.process(c.source))
 
-      c.content = commonmark.Util.html(doc, 2).trim
       c.toc = commonmark.Util.toc(doc)
+      c.content = commonmark.Util.html(doc, 2).trim
     }
 
 //    @tailrec
