@@ -10,6 +10,7 @@ import java.nio.file.{Files, Path, Paths, StandardCopyOption}
 import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
+import scala.jdk.CollectionConverters.IteratorHasAsScala
 import scala.language.postfixOps
 
 object Process {
@@ -24,7 +25,7 @@ object Process {
     val shortcodes = src resolve conf.path.shortcodeDir.normalize
     val contentItems = new ListBuffer[ContentItem]
     val dataFiles = new ListBuffer[Data]
-    val layoutTemplates = new mutable.HashMap[List[String], TemplateFile]
+    val layoutTemplates = new mutable.HashMap[(List[String], String), TemplateFile]
     val partialTemplates = new mutable.HashMap[String, TemplateFile]
     val shortcodeTemplates = new mutable.HashMap[String, TemplateFile]
     val otherTemplates = new ListBuffer[TemplateFile]
@@ -111,20 +112,29 @@ object Process {
       filesIncludingExtensions(listing, "YML", "YAML", "yml", "yaml") foreach (p =>
         dataFiles += Data(dir, withoutExtension(p.getFileName.toString), yaml(readFile(p.toString))))
 
-      if (dir startsWith layouts)
+      if (dir startsWith layouts) {
+        val folder = (layouts relativize dir getParent).iterator.asScala.toList map (_.toString)
+        println(dir, folder)
+
         filesIncludingExtensions(listing, "html", "sq") foreach { p =>
-          layoutTemplates += TemplateFile(dir, withoutExtension(p.getFileName.toString), null)
+          val name = withoutExtension(p.getFileName.toString)
+
+          layoutTemplates((folder, name)) = TemplateFile(dir, name, null)
         }
-// templateParser.parse(readFile(p.toString))
+      }
 
       if (dir startsWith partials)
         filesIncludingExtensions(listing, "html", "sq") foreach { p =>
-          partialTemplates += TemplateFile(dir, withoutExtension(p.getFileName.toString), null)
+          val name = withoutExtension(p.getFileName.toString)
+
+          partialTemplates(name) = TemplateFile(dir, name, null)
         }
 
       if (dir startsWith shortcodes)
         filesIncludingExtensions(listing, "html", "sq") foreach { p =>
-          shortcodeTemplates += TemplateFile(dir, withoutExtension(p.getFileName.toString), null)
+          val name = withoutExtension(p.getFileName.toString)
+
+          shortcodeTemplates(name) = TemplateFile(dir, name, null)
         }
 
       if (dir startsWith static) {
@@ -238,7 +248,7 @@ case class TemplateFile(path: Path, name: String, var template: TemplateAST)
 
 case class Site(content: List[ContentItem],
                 data: List[Data],
-                layoutTemplates: Map[List[String], TemplateFile],
+                layoutTemplates: Map[(List[String], String), TemplateFile],
                 partialTemplates: Map[String, TemplateFile],
                 shortcodeTemplates: Map[String, TemplateFile],
                 otherTemplates: List[TemplateFile])

@@ -83,12 +83,22 @@ object App {
     val site = Process(src1, dst1, conf)
     val partialsLoader: TemplateLoader =
       (name: String) =>
-        site.partialTemplates find (_.name == name) map (_.template) orElse problem(s"partial '$name' not found")
+        site.partialTemplates get name map { t =>
+          if (t.template eq null)
+            t.template = templateParser.parse(readFile(t.path.toString))
+
+          t.template
+        } orElse problem(s"partial '$name' not found")
     val templateRenderer: TemplateRenderer =
       new TemplateRenderer(partials = partialsLoader, functions = templateFunctions, data = rendererData)
     val shortcodesLoader: TemplateLoader =
       (name: String) =>
-        site.shortcodeTemplates find (_.name == name) map (_.template) orElse problem(s"shortcode '$name' not found")
+        site.shortcodeTemplates get name map { t =>
+          if (t.template eq null)
+            t.template = templateParser.parse(readFile(t.path.toString))
+
+          t.template
+        } orElse problem(s"shortcode '$name' not found")
     val preprocessor = new Preprocessor(shortcodes = shortcodesLoader, renderer = templateRenderer)
 
     for (c @ ContentFile(_, name, _, _, _, _) <- site.content) {
