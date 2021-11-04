@@ -164,6 +164,11 @@ object App {
           mktoc(rest)
       }
 
+    def findLayout(folders: List[String], name: String): Option[TemplateFile] = {
+      None
+      // site.layoutTemplates
+    }
+
     mktoc(site.content.tail)
 
     val sitedata = confdata + ("toc" -> sitetoc.toList)
@@ -171,18 +176,19 @@ object App {
     val baseofLayout = conf.baseofLayout
     val fileLayout = conf.fileLayout
     val folderLayout = conf.folderLayout
+    val folderContent = conf.folderContent
 
     for (ContentFile(outdir, name, data, _, content, toc) <- site.content) {
       templateRenderer.blocks.clear()
 
-      val layout = if (name == "_index") folderLayout else fileLayout
+      val layout = if (name == folderContent) folderLayout else fileLayout
 
-      site.layoutTemplates find (_.name == defaultLayout) match {
+      findLayout(Nil, layout) match {
         case Some(TemplateFile(templatePath, templateName, template)) =>
           show(s"render $name using ${src1 relativize templatePath resolve templateName}")
 
           val outfile =
-            if (name == "_index") outdir resolve "index.html" toString
+            if (name == folderContent) outdir resolve "index.html" toString
             else {
               val pagedir = outdir resolve name
 
@@ -212,7 +218,7 @@ object App {
 
           templateRenderer.render(pagedata, template, out)
           out.close()
-        case None => problem(s"'default' layout not found for laying out '$name'")
+        case None => problem(s"no layout '$layout' found for rendering '$name'")
       }
     }
 

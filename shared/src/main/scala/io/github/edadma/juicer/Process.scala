@@ -23,6 +23,7 @@ object Process {
     val layouts = src resolve conf.path.layoutDir.normalize
     val partials = src resolve conf.path.partialDir.normalize
     val shortcodes = src resolve conf.path.shortcodeDir.normalize
+    val folderContent = conf.folderContent
     val contentItems = new ListBuffer[ContentItem]
     val dataFiles = new ListBuffer[Data]
     val layoutTemplates = new mutable.HashMap[(List[String], String), TemplateFile]
@@ -97,9 +98,15 @@ object Process {
             }
           }
 
+          val name =
+            withoutExtension(p.getFileName.toString) match {
+              case `folderContent` => folderContent
+              case n               => clean(n, stripPrefix)
+            }
+
           contentItems += ContentFile(
             outdir,
-            clean(withoutExtension(p.getFileName.toString), stripPrefix),
+            name,
             yaml(data),
             ((if (first == "---") ""
               else first :+ '\n') ++ (lines map (_ :+ '\n') mkString)).trim,
@@ -113,8 +120,7 @@ object Process {
         dataFiles += Data(dir, withoutExtension(p.getFileName.toString), yaml(readFile(p.toString))))
 
       if (dir startsWith layouts) {
-        val folder = (layouts relativize dir getParent).iterator.asScala.toList map (_.toString)
-        println(dir, folder)
+        val folder = (layouts relativize dir).iterator.asScala.toList map (_.toString)
 
         filesIncludingExtensions(listing, "html", "sq") foreach { p =>
           val name = withoutExtension(p.getFileName.toString)

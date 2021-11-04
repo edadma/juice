@@ -17,6 +17,7 @@ object BaseConfigs {
         |baseofLayout =   baseof
         |fileLayout =     file
         |folderLayout =   folder
+        |folderContent =  _index
         |layoutDir =      .
         |shortcodeDir =   .
         |partialDir =     .
@@ -35,6 +36,7 @@ object BaseConfigs {
         |baseofLayout =   baseof
         |fileLayout =     file
         |folderLayout =   folder
+        |folderContent =  _index
         |layoutDir =      layouts
         |shortcodeDir =   shortcodes
         |partialDir =     partials
@@ -53,6 +55,7 @@ object BaseConfigs {
         |defaultLayout =  _défaut
         |fileLayout =     fichier
         |folderLayout =   dossier
+        |folderContent =  _indice
         |layoutDir =      mises-en-page
         |shortcodeDir =   codes-courts
         |partialDir =     partiels
