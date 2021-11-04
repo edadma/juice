@@ -168,16 +168,21 @@ object App {
 
     val sitedata = confdata + ("toc" -> sitetoc.toList)
     val defaultLayout = conf.defaultLayout
+    val baseofLayout = conf.baseofLayout
+    val fileLayout = conf.fileLayout
+    val folderLayout = conf.folderLayout
 
     for (ContentFile(outdir, name, data, _, content, toc) <- site.content) {
       templateRenderer.blocks.clear()
+
+      val layout = if (name == "_index") folderLayout else fileLayout
 
       site.layoutTemplates find (_.name == defaultLayout) match {
         case Some(TemplateFile(templatePath, templateName, template)) =>
           show(s"render $name using ${src1 relativize templatePath resolve templateName}")
 
           val outfile =
-            if (name == "index") outdir resolve "index.html" toString
+            if (name == "_index") outdir resolve "index.html" toString
             else {
               val pagedir = outdir resolve name
 
