@@ -13,8 +13,8 @@ object BaseConfigs {
         |contentDir =     .
         |htmlDir =        ""
         |stripPrefix =    false
-        |defaultLayout =  default
-        |homeLayout =     home
+        |defaultLayout =  .
+        |baseofLayout =   baseof
         |fileLayout =     file
         |folderLayout =   folder
         |layoutDir =      .
@@ -31,8 +31,8 @@ object BaseConfigs {
         |contentDir =     content
         |htmlDir =        html
         |stripPrefix =    true
-        |defaultLayout =  default
-        |homeLayout =     home
+        |defaultLayout =  _default
+        |baseofLayout =   baseof
         |fileLayout =     file
         |folderLayout =   folder
         |layoutDir =      layouts
@@ -49,8 +49,8 @@ object BaseConfigs {
         |contentDir =     contentu
         |htmlDir =        html
         |stripPrefix =    true
-        |homeLayout =     accueil
-        |defaultLayout =  défaut
+        |baseofLayout =   basede
+        |defaultLayout =  _défaut
         |fileLayout =     fichier
         |folderLayout =   dossier
         |layoutDir =      mises-en-page
