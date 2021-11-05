@@ -5,12 +5,12 @@ import scala.collection.immutable.VectorMap
 import scala.jdk.CollectionConverters._
 import scala.language.postfixOps
 import io.github.edadma.cross_platform.readFile
-import io.github.edadma.squiggly.{TemplateLoader, TemplateRenderer}
+import io.github.edadma.squiggly.{TemplateAST, TemplateLoader, TemplateRenderer}
 import io.github.edadma.commonmark
 import io.github.edadma.commonmark.Heading
 import org.ekrich.config.{Config, ConfigFactory, ConfigParseOptions, ConfigSyntax, ConfigValueFactory}
 
-import java.io.FileOutputStream
+import java.io.{FileOutputStream, OutputStream}
 import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -200,7 +200,6 @@ object App {
           Files.createDirectories(pagedir)
           pagedir resolve "index.html" toString
         }
-      val out = new FileOutputStream(outfile)
       val sub = {
         toc.headings.headOption match {
           case Some(h) => subheadings(h.sub.headings)
@@ -215,31 +214,42 @@ object App {
         else (if (html != "") rel.subpath(1, rel.getNameCount) else rel).iterator.asScala.toList map (_.toString)
       }
       val layout = if (name == folderContent) folderLayout else fileLayout
-
       val particularTemplate =
         findLayout(folders, layout) match {
           case Some(TemplateFile(templatePath, templateName, template)) =>
             show(s"render $name using ${src1 relativize templatePath}")
             Some(template)
           case None =>
-            show(s"no layout '$layout' found for rendering '$name'")
+            show(s"layout '$layout' not found for rendering '$name'")
             None
         }
       val baseofTemplate =
-        findLayout(folders, layout) match {
+        findLayout(folders, baseofLayout) match {
           case Some(TemplateFile(templatePath, templateName, template)) =>
             show(s"render $name using ${src1 relativize templatePath}")
             Some(template)
           case None =>
-            show(s"no layout '$layout' found for rendering '$name'")
+            show(s"layout '$baseofLayout' not found for rendering '$name'")
             None
         }
 
-      show(s"content: write file $outfile")
+      def render(template: TemplateAST): Unit = {
+        show(s"content: write file $outfile")
 
-      templateRenderer.render(pagedata, template, out)
-      out.close()
+        val out = new FileOutputStream(outfile)
 
+        templateRenderer.render(pagedata, template, out)
+        out.close()
+      }
+
+      (particularTemplate, baseofTemplate) match {
+        case (None, None) => problem(s"no template was found for rendering $name")
+        case (Some(p), Some(b)) =>
+          templateRenderer.render(pagedata, p, OutputStream.nullOutputStream)
+          render(b)
+        case (Some(p), None) => render(p)
+        case (None, Some(b)) => render(b)
+      }
     }
 
     for (TemplateFile(path, _, template) <- site.otherTemplates) {
