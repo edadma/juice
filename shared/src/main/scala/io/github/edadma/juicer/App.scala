@@ -195,7 +195,7 @@ object App {
 
       findLayout(folders, layout) match {
         case Some(TemplateFile(templatePath, templateName, template)) =>
-          show(s"render $name using ${src1 relativize templatePath resolve templateName}")
+          show(s"render $name using ${src1 relativize templatePath}")
 
           val outfile =
             if (name == folderContent) outdir resolve "index.html" toString

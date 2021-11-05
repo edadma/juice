@@ -125,7 +125,7 @@ object Process {
         filesIncludingExtensions(listing, "html", "sq") foreach { p =>
           val name = withoutExtension(p.getFileName.toString)
 
-          layoutTemplates((folder, name)) = TemplateFile(dir, name, null)
+          layoutTemplates((folder, name)) = TemplateFile(p, name, null)
         }
       }
 
@@ -133,14 +133,14 @@ object Process {
         filesIncludingExtensions(listing, "html", "sq") foreach { p =>
           val name = withoutExtension(p.getFileName.toString)
 
-          partialTemplates(name) = TemplateFile(dir, name, null)
+          partialTemplates(name) = TemplateFile(p, name, null)
         }
 
       if (dir startsWith shortcodes)
         filesIncludingExtensions(listing, "html", "sq") foreach { p =>
           val name = withoutExtension(p.getFileName.toString)
 
-          shortcodeTemplates(name) = TemplateFile(dir, name, null)
+          shortcodeTemplates(name) = TemplateFile(p, name, null)
         }
 
       if (dir startsWith static) {
