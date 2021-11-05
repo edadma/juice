@@ -182,9 +182,32 @@ object App {
         t
       }
 
+    case class SubHeading(heading: String, id: String, sub: List[SubHeading])
+
+    def subheadings(l: List[Heading]): List[SubHeading] =
+      l map (h =>
+        SubHeading(commonmark.Util.html(h.heading.contents, 2).trim, h.heading.id.get, subheadings(h.sub.headings)))
+
     for (ContentFile(outdir, name, data, _, content, toc) <- site.content) {
       templateRenderer.blocks.clear()
 
+      val outfile =
+        if (name == folderContent) outdir resolve "index.html" toString
+        else {
+          val pagedir = outdir resolve name
+
+          show(s"content: create directory $pagedir")
+          Files.createDirectories(pagedir)
+          pagedir resolve "index.html" toString
+        }
+      val out = new FileOutputStream(outfile)
+      val sub = {
+        toc.headings.headOption match {
+          case Some(h) => subheadings(h.sub.headings)
+          case None    => Nil
+        }
+      }
+      val pagedata = Map("site" -> sitedata, "page" -> data, "content" -> content, "toc" -> toc, "sub" -> sub)
       val folders = {
         val rel = dst1 relativize outdir
 
@@ -193,43 +216,30 @@ object App {
       }
       val layout = if (name == folderContent) folderLayout else fileLayout
 
-      findLayout(folders, layout) match {
-        case Some(TemplateFile(templatePath, templateName, template)) =>
-          show(s"render $name using ${src1 relativize templatePath}")
+      val particularTemplate =
+        findLayout(folders, layout) match {
+          case Some(TemplateFile(templatePath, templateName, template)) =>
+            show(s"render $name using ${src1 relativize templatePath}")
+            Some(template)
+          case None =>
+            show(s"no layout '$layout' found for rendering '$name'")
+            None
+        }
+      val baseofTemplate =
+        findLayout(folders, layout) match {
+          case Some(TemplateFile(templatePath, templateName, template)) =>
+            show(s"render $name using ${src1 relativize templatePath}")
+            Some(template)
+          case None =>
+            show(s"no layout '$layout' found for rendering '$name'")
+            None
+        }
 
-          val outfile =
-            if (name == folderContent) outdir resolve "index.html" toString
-            else {
-              val pagedir = outdir resolve name
+      show(s"content: write file $outfile")
 
-              show(s"content: create directory $pagedir")
-              Files.createDirectories(pagedir)
-              pagedir resolve "index.html" toString
-            }
+      templateRenderer.render(pagedata, template, out)
+      out.close()
 
-          show(s"content: write file $outfile")
-
-          case class SubHeading(heading: String, id: String, sub: List[SubHeading])
-
-          def subheadings(l: List[Heading]): List[SubHeading] =
-            l map (h =>
-              SubHeading(commonmark.Util.html(h.heading.contents, 2).trim,
-                         h.heading.id.get,
-                         subheadings(h.sub.headings)))
-
-          val out = new FileOutputStream(outfile)
-          val sub = {
-            toc.headings.headOption match {
-              case Some(h) => subheadings(h.sub.headings)
-              case None    => Nil
-            }
-          }
-          val pagedata = Map("site" -> sitedata, "page" -> data, "content" -> content, "toc" -> toc, "sub" -> sub)
-
-          templateRenderer.render(pagedata, template, out)
-          out.close()
-        case None => show(s"no layout '$layout' found for rendering '$name'")
-      }
     }
 
     for (TemplateFile(path, _, template) <- site.otherTemplates) {
