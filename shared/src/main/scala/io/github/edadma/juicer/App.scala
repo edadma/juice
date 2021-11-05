@@ -50,19 +50,17 @@ object App {
           case None    => c
           case Some(b) => c.withValue("baseURL", ConfigValueFactory.fromAnyRef(b))
         }
-      val (d, c2) =
-        dst match {
-          case null =>
-            val p = (src1 resolve "public").normalize.toAbsolutePath
 
-            (p, c1.withValue("publicDir", ConfigValueFactory.fromAnyRef(p.toString)))
-          case d =>
-            val p = d.normalize.toAbsolutePath
+      dst match {
+        case null =>
+          val p = (src1 resolve "public").normalize.toAbsolutePath
 
-            (p, c1.withValue("publicDir", ConfigValueFactory.fromAnyRef(p.toString)))
-        }
+          (p, c1.withValue("publicDir", ConfigValueFactory.fromAnyRef(p.toString)))
+        case d =>
+          val p = d.normalize.toAbsolutePath
 
-      (d, c2)
+          (p, c1.withValue("publicDir", ConfigValueFactory.fromAnyRef(p.toString)))
+      }
     }
 
     show(s"destination path = $dst1")
@@ -164,26 +162,38 @@ object App {
           mktoc(rest)
       }
 
-    def findLayout(folders: List[String], name: String): Option[TemplateFile] = {
-      None
-      // site.layoutTemplates
-    }
-
-    mktoc(site.content.tail)
-
     val sitedata = confdata + ("toc" -> sitetoc.toList)
     val defaultLayout = conf.defaultLayout
     val baseofLayout = conf.baseofLayout
     val fileLayout = conf.fileLayout
     val folderLayout = conf.folderLayout
     val folderContent = conf.folderContent
+    val html = conf.htmlDir
+
+    def findLayout(folders: List[String], name: String): Option[TemplateFile] =
+      site.layoutTemplates get (folders, name) orElse (if (folders.isEmpty)
+                                                         site.layoutTemplates get (List(defaultLayout), name)
+                                                       else findLayout(folders.init, name)) map { t =>
+        if (t.template eq null)
+          t.template = templateParser.parse(readFile(t.path.toString))
+
+        t
+      }
+
+    mktoc(site.content.tail)
 
     for (ContentFile(outdir, name, data, _, content, toc) <- site.content) {
       templateRenderer.blocks.clear()
 
+      val folders = {
+        val rel = dst1 relativize outdir
+
+        if (dst1 == outdir) Nil
+        else (if (html != "") rel.subpath(1, rel.getNameCount) else rel).iterator.asScala.toList map (_.toString)
+      }
       val layout = if (name == folderContent) folderLayout else fileLayout
 
-      findLayout(Nil, layout) match {
+      findLayout(folders, layout) match {
         case Some(TemplateFile(templatePath, templateName, template)) =>
           show(s"render $name using ${src1 relativize templatePath resolve templateName}")
 
