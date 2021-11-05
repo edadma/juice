@@ -116,32 +116,48 @@ object Process {
         }
       }
 
-      filesIncludingExtensions(listing, "YML", "YAML", "yml", "yaml") foreach (p =>
-        dataFiles += Data(dir, withoutExtension(p.getFileName.toString), yaml(readFile(p.toString))))
+      val data =
+        filesIncludingExtensions(listing, "YML", "YAML", "yml", "yaml")
+
+      show(s"data files: ${data map (_.getFileName) mkString ", "}", data.nonEmpty)
+      data foreach (p => dataFiles += Data(dir, withoutExtension(p.getFileName.toString), yaml(readFile(p.toString))))
 
       if (dir startsWith layouts) {
         val folder = (layouts relativize dir).iterator.asScala.toList map (_.toString)
+        val files = filesIncludingExtensions(listing, "html", "sq")
 
-        filesIncludingExtensions(listing, "html", "sq") foreach { p =>
+        show(s"layouts: ${files map (_.getFileName) mkString ", "}", files.nonEmpty)
+
+        files foreach { p =>
           val name = withoutExtension(p.getFileName.toString)
 
           layoutTemplates((folder, name)) = TemplateFile(p, name, null)
         }
       }
 
-      if (dir startsWith partials)
-        filesIncludingExtensions(listing, "html", "sq") foreach { p =>
+      if (dir startsWith partials) {
+        val files = filesIncludingExtensions(listing, "html", "sq")
+
+        show(s"partials: ${files map (_.getFileName) mkString ", "}", files.nonEmpty)
+
+        files foreach { p =>
           val name = withoutExtension(p.getFileName.toString)
 
           partialTemplates(name) = TemplateFile(p, name, null)
         }
+      }
 
-      if (dir startsWith shortcodes)
-        filesIncludingExtensions(listing, "html", "sq") foreach { p =>
+      if (dir startsWith shortcodes) {
+        val files = filesIncludingExtensions(listing, "html", "sq")
+
+        show(s"shortcodes: ${files map (_.getFileName) mkString ", "}", files.nonEmpty)
+
+        files foreach { p =>
           val name = withoutExtension(p.getFileName.toString)
 
           shortcodeTemplates(name) = TemplateFile(p, name, null)
         }
+      }
 
       if (dir startsWith static) {
         val subdir = dst resolve (static relativize dir)
@@ -193,8 +209,6 @@ object Process {
       }
 
       dirsExcluding(listing, dst) foreach processDir
-
-      show(s"<<< ${dir.getParent}", dir.getParent startsWith src)
     }
 
     processDir(src)
