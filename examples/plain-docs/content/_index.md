@@ -1,4 +1,1 @@
-Home Page
-=========
-
-this is the home page
+this is the home page.
