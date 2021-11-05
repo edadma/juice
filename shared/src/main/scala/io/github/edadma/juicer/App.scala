@@ -162,6 +162,8 @@ object App {
           mktoc(rest)
       }
 
+    mktoc(site.content.tail)
+
     val sitedata = confdata + ("toc" -> sitetoc.toList)
     val defaultLayout = conf.defaultLayout
     val baseofLayout = conf.baseofLayout
@@ -179,8 +181,6 @@ object App {
 
         t
       }
-
-    mktoc(site.content.tail)
 
     for (ContentFile(outdir, name, data, _, content, toc) <- site.content) {
       templateRenderer.blocks.clear()
