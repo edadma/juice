@@ -60,7 +60,6 @@ object Process {
           }
         }
 
-        // todo: treat _index.md content files in a special way associated to ContentFolder items
         if (outdir != dst) {
           show(s"content destination subfolder: $outdir")
           contentItems += ContentFolder(outdir)

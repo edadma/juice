@@ -3,28 +3,31 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Juicer Documentation</title>
+    <title>{{ .site.title }}: {{ .site.subtitle }}</title>
     <link rel="stylesheet" href="{{ 'styles/bulma.min.css' | absURL }}">
-    <link rel="stylesheet" href="{{ 'styles/style.css' | absURL }}">
+    <link rel="stylesheet" href="{{ 'styles/footer.css' | absURL }}">
     <script src="https://kit.fontawesome.com/8a5bb05f66.js" crossorigin="anonymous"></script>
   </head>
 
   <body>
-    <nav class="navbar is-fixed-top" role="navigation" aria-label="main navigation">
+    <nav class="navbar is-fixed-top is-light" role="navigation" aria-label="main navigation">
       <div class="navbar-brand">
         <a class="navbar-item" href="{{ .site.baseURL }}">
-          <img src="{{ 'images/juicer-logo-name-90.png' | absURL }}" alt="Juicer: a static site generator">
+          <img src="{{ 'images/' ++ .site.logo | absURL }}" alt="{{ .site.title }}: {{ .site.subtitle }}">
         </a>
       </div>
 
       <div class="navbar-menu">
         <div class="navbar-start">
-          <a class="navbar-item">
+          <a class="navbar-item"  href="{{ .site.baseURL }}">
             Home
           </a>
-
-          <a class="navbar-item">
+          <!-- todo: navbar links have to come from data -->
+          <a class="navbar-item"  href="{{ 'html/general/overview' | absURL }}">
             Documentation
+          </a>
+          <a class="navbar-item"  href="{{ .site.baseURL }}">
+            Themes
           </a>
         </div>
 
@@ -59,9 +62,20 @@
     <footer class="footer pt-3 pb-3">
       <div class="content has-text-centered">
         <p>
-          <strong>Bulma</strong> by <a href="https://jgthms.com">Jeremy Thomas</a>. The source code is licensed
-          <a href="http://opensource.org/licenses/mit-license.php">MIT</a>. The website content
-          is licensed <a href="http://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY NC SA 4.0</a>.
+          <strong><a href="https://github.com/edadma/juicer">Juicer</a></strong> by <a href="https://github.com/edadma">@edadma</a>. The source code is licensed
+          <a href="https://opensource.org/licenses/ISC">ISC</a>.
+        </p>
+        <p>
+          Documentation built with <a href="https://github.com/edadma/juicer">Juicer</a>.
+        </p>
+        <p>
+          <a href="https://bulma.io">
+            <img
+                    src="https://bulma.io/images/made-with-bulma.png"
+                    alt="Made with Bulma"
+                    width="128"
+                    height="24">
+          </a>
         </p>
       </div>
     </footer>

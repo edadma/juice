@@ -1,7 +1,12 @@
 {{ define main }}
-  <div class="column is-8">
-    <div class="content has-text-justified">
-      {{ .content }}
+  <section class="hero">
+    <div class="hero-body">
+      <p class="title">
+        {{ .site.title }}
+      </p>
+      <p class="subtitle">
+        {{ .site.subtitle }}
+      </p>
     </div>
-  </div>
+  </section>
 {{ end }}

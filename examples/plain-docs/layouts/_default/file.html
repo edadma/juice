@@ -1,7 +1,7 @@
 {{ define main }}
   <section class="section">
     <div class="columns">
-      <div class="column is-2 is-offset-1" style="height:80vh; position: sticky; top: 3.2rem;">
+      <div class="column is-2 is-offset-1">
         <aside class="menu">
           {{- for .site.toc }}
             {{- if .label }}
@@ -25,13 +25,13 @@
         </div>
       </div>
 
-      <div class="column is-one-fifth" style="height:80vh; position: sticky; top: 3.2rem;">
+      <div class="column is-one-fifth">
         <aside class="menu">
           {{- if .sub }}
             <p class="menu-label has-text-weight-bold">
               Table of Contents
             </p>
-              {{- partial 'subheadings' .sub }}
+            {{- partial 'subheadings' .sub }}
           {{- end }}
         </aside>
       </div>
