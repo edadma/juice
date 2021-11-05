@@ -228,7 +228,7 @@ object App {
 
           templateRenderer.render(pagedata, template, out)
           out.close()
-        case None => problem(s"no layout '$layout' found for rendering '$name'")
+        case None => show(s"no layout '$layout' found for rendering '$name'")
       }
     }
 
