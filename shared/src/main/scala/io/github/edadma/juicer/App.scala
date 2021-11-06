@@ -278,22 +278,29 @@ object App {
       case dot => filename substring (dot + 1)
     }
 
+  def yaml(file: String)
   def readConfig(path: Path): Config = {
     val file = path.toString
-    val syntax =
-      extension(file) match {
-        case "json"                 => ConfigParseOptions.defaults.setSyntax(ConfigSyntax.JSON)
-        case "conf" | "hocon"       => ConfigParseOptions.defaults.setSyntax(ConfigSyntax.CONF)
-        case "props" | "properties" => ConfigParseOptions.defaults.setSyntax(ConfigSyntax.PROPERTIES)
-      }
+    val ext = extension(file)
 
-    ConfigFactory.parseString(readFile(file), syntax)
+    ext match {
+//      case "yaml" | "yml" =>
+      case _ =>
+        val syntax =
+          ext match {
+            case "json"                 => ConfigParseOptions.defaults.setSyntax(ConfigSyntax.JSON)
+            case "conf" | "hocon"       => ConfigParseOptions.defaults.setSyntax(ConfigSyntax.CONF)
+            case "props" | "properties" => ConfigParseOptions.defaults.setSyntax(ConfigSyntax.PROPERTIES)
+          }
+
+        ConfigFactory.parseString(readFile(file), syntax)
+    }
   }
 
   def config(src: Path, base: String): Config = {
     BaseConfigs(base) match {
       case Some(b) =>
-        filesIncludingExtensions(list(src), "json", "conf", "properties", "props", "hocon").foldLeft(b) {
+        filesIncludingExtensions(list(src), "json", "conf", "properties", "props", "hocon", "yaml", "yml").foldLeft(b) {
           case (c, p) => readConfig(p) withFallback c
         }
       case None => problem(s"unknown base configuration: $base")
