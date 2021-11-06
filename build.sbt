@@ -23,7 +23,7 @@ lazy val juicer = crossProject(JSPlatform, JVMPlatform, NativePlatform).in(file(
       "io.github.edadma" %%% "datetime" % "0.1.11",
       "io.github.edadma" %%% "squiggly" % "0.1.15-pre.3",
       "io.github.edadma" %%% "yaml" % "0.1.11",
-      "io.github.edadma" %%% "commonmark" % "0.1.0-pre.5"
+      "io.github.edadma" %%% "commonmark" % "0.1.0-pre.6"
     ),
     libraryDependencies ++= Seq(
       "com.github.scopt" %%% "scopt" % "4.0.1",

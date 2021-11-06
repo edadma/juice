@@ -11,7 +11,7 @@
             {{- else }}
               <ul class="menu-list">
                 {{- for .headings }}
-                  <li><a>{{ . }}</a></li>
+                  <li><a href="{{ .href | relURL }}">{{ .html }}</a></li>
                 {{- end }}
               </ul>
             {{- end }}

@@ -131,7 +131,8 @@ object App {
 
     trait TOCItem
     case class TOCLabel(label: String) extends TOCItem
-    case class TOCList(headings: List[String]) extends TOCItem
+    case class TOCLink(html: String, href: String)
+    case class TOCList(headings: List[TOCLink]) extends TOCItem
 
     val sitetoc = new ListBuffer[TOCItem]
 
@@ -149,20 +150,27 @@ object App {
 //    val sitedata = confdata + /*("contents" -> contents) + */ ("toc" -> sitetoc)
 
     @tailrec
-    def mktoc(l: List[ContentItem]): Unit =
+    def mktocFromContent(l: List[ContentItem]): Unit =
       l match {
         case Nil =>
         case ContentFolder(outdir) :: t =>
           sitetoc += TOCLabel(outdir.getFileName.toString)
-          mktoc(t)
+          mktocFromContent(t)
         case (_: ContentFile) :: _ =>
           val (headings: List[ContentFile], rest) = l span (_.isInstanceOf[ContentFile])
 
-          sitetoc += TOCList(headings map (h => commonmark.Util.html(h.toc.headings.head.heading.contents, 2).trim))
-          mktoc(rest)
+          sitetoc += TOCList(
+            headings map (
+                h =>
+                  TOCLink(
+                    commonmark.Util.html(h.toc.headings.head.heading.contents, 2).trim,
+                    s"${dst1 relativize h.outdir}/${h.name}"
+                  )))
+          mktocFromContent(rest)
       }
 
-    mktoc(site.content.tail)
+//    def mktocFromConfig(l: List[ContentItem]): Unit =
+    mktocFromContent(site.content.tail)
 
     val sitedata = confdata + ("toc" -> sitetoc.toList)
     val defaultLayout = conf.defaultLayout
@@ -278,13 +286,13 @@ object App {
       case dot => filename substring (dot + 1)
     }
 
-  def yaml(file: String)
   def readConfig(path: Path): Config = {
     val file = path.toString
     val ext = extension(file)
+    val conf = readFile(file)
 
     ext match {
-//      case "yaml" | "yml" =>
+      case "yaml" | "yml" => YamlConfig(conf)
       case _ =>
         val syntax =
           ext match {
@@ -293,7 +301,7 @@ object App {
             case "props" | "properties" => ConfigParseOptions.defaults.setSyntax(ConfigSyntax.PROPERTIES)
           }
 
-        ConfigFactory.parseString(readFile(file), syntax)
+        ConfigFactory.parseString(conf, syntax)
     }
   }
 

@@ -3,7 +3,7 @@ Overview
 
 this is an overview
 
-heading 1
+Heading 1
 ---------
 
 this is after heading 1

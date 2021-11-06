@@ -25,7 +25,7 @@ object Process {
     val shortcodes = src resolve conf.path.shortcodeDir.normalize
     val folderContent = conf.folderContent
     val contentItems = new ListBuffer[ContentItem]
-    val dataFiles = new ListBuffer[Data]
+    val dataFiles = new ListBuffer[DataFile]
     val layoutTemplates = new mutable.HashMap[(List[String], String), TemplateFile]
     val partialTemplates = new mutable.HashMap[String, TemplateFile]
     val shortcodeTemplates = new mutable.HashMap[String, TemplateFile]
@@ -119,7 +119,8 @@ object Process {
         filesIncludingExtensions(listing, "YML", "YAML", "yml", "yaml")
 
       show(s"data files: ${data map (_.getFileName) mkString ", "}", data.nonEmpty)
-      data foreach (p => dataFiles += Data(dir, withoutExtension(p.getFileName.toString), yaml(readFile(p.toString))))
+      data foreach (p =>
+        dataFiles += DataFile(dir, withoutExtension(p.getFileName.toString), yaml(readFile(p.toString))))
 
       if (dir startsWith layouts) {
         val folder = (layouts relativize dir).iterator.asScala.toList map (_.toString)
@@ -256,7 +257,7 @@ object Process {
 
 }
 
-case class Data(parent: Path, name: String, data: Any)
+case class DataFile(parent: Path, name: String, data: Any)
 
 trait ContentItem { val outdir: Path }
 case class ContentFile(outdir: Path, name: String, page: Any, source: String, var content: String, var toc: TOC)
@@ -266,7 +267,7 @@ case class ContentFolder(outdir: Path) extends ContentItem
 case class TemplateFile(path: Path, name: String, var template: TemplateAST)
 
 case class Site(content: List[ContentItem],
-                data: List[Data],
+                data: List[DataFile],
                 layoutTemplates: Map[(List[String], String), TemplateFile],
                 partialTemplates: Map[String, TemplateFile],
                 shortcodeTemplates: Map[String, TemplateFile],
