@@ -25,6 +25,7 @@ object Process {
     val shortcodes = src resolve conf.path.shortcodeDir.normalize
     val folderContent = conf.folderContent
     val contentItems = new ListBuffer[ContentItem]
+    val contentMap = new mutable.HashMap[String, ContentFile]
     val dataFiles = new ListBuffer[DataFile]
     val layoutTemplates = new mutable.HashMap[(List[String], String), TemplateFile]
     val partialTemplates = new mutable.HashMap[String, TemplateFile]
@@ -102,8 +103,7 @@ object Process {
               case `folderContent` => folderContent
               case n               => clean(n, stripPrefix)
             }
-
-          contentItems += ContentFile(
+          val contentFile = ContentFile(
             outdir,
             name,
             yaml(data),
@@ -112,6 +112,9 @@ object Process {
             null,
             null
           )
+
+          contentMap(content relativize p toString) = contentFile
+          contentItems += contentFile
         }
       }
 
@@ -213,6 +216,7 @@ object Process {
 
     processDir(src)
     Site(contentItems.toList,
+         contentMap.toMap,
          dataFiles.toList,
          layoutTemplates.toMap,
          partialTemplates.toMap,
@@ -267,6 +271,7 @@ case class ContentFolder(outdir: Path) extends ContentItem
 case class TemplateFile(path: Path, name: String, var template: TemplateAST)
 
 case class Site(content: List[ContentItem],
+                map: Map[String, ContentFile],
                 data: List[DataFile],
                 layoutTemplates: Map[(List[String], String), TemplateFile],
                 partialTemplates: Map[String, TemplateFile],
