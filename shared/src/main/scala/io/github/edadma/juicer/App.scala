@@ -153,6 +153,9 @@ object App {
     def mktocFromContent(l: List[ContentItem]): Unit =
       l match {
         case Nil =>
+        case ContentLabel(label) :: t =>
+          sitetoc += TOCLabel(label)
+          mktocFromContent(t)
         case ContentFolder(outdir) :: t =>
           sitetoc += TOCLabel(outdir.getFileName.toString)
           mktocFromContent(t)
@@ -169,8 +172,34 @@ object App {
           mktocFromContent(rest)
       }
 
-//    def mktocFromConfig(l: List[ContentItem]): Unit =
-    mktocFromContent(site.content.tail)
+    def mktocFromConfig(): Unit = {
+      val buf = new ListBuffer[ContentItem]
+
+      confdata("nav") match {
+        case l: List[_] =>
+          l foreach {
+            case label: String =>
+              if (markdownExtensions exists (label endsWith _))
+                buf += site.map.getOrElse(label, problem(s"content file not found $label"))
+              else
+                buf += ContentLabel(label)
+            case file: Map[_, _]
+                if file.size == 1 && file.head._1.isInstanceOf[String] && file.head._2.isInstanceOf[String] =>
+              val (name: String, path: String) = file.head
+
+              buf += site.map.getOrElse(path, problem(s"content file not found $path"))
+            case e => problem(s"invalid nav element: $e")
+          }
+
+          mktocFromContent(buf.toList)
+        case n => problem(s"invalid 'nav': $n")
+      }
+    }
+
+    if (confdata contains "nav")
+      mktocFromConfig()
+    else if (site.content.nonEmpty)
+      mktocFromContent(site.content.tail)
 
     val sitedata = confdata + ("toc" -> sitetoc.toList)
     val defaultLayout = conf.defaultLayout

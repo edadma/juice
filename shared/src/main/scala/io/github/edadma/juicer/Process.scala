@@ -40,7 +40,7 @@ object Process {
       val listing = list(dir)
 
       if (dir startsWith content) {
-        val files = filesIncludingExtensions(listing, "md", "markdown", "mkd", "mkdn", "mdown")
+        val files = filesIncludingExtensions(listing, markdownExtensions: _*)
         val outdir = {
           val uncleaned = dst resolve (content relativize dir)
 
@@ -267,6 +267,7 @@ trait ContentItem { val outdir: Path }
 case class ContentFile(outdir: Path, name: String, page: Any, source: String, var content: String, var toc: TOC)
     extends ContentItem
 case class ContentFolder(outdir: Path) extends ContentItem
+case class ContentLabel(label: String) extends ContentItem { val outdir: Path = null }
 
 case class TemplateFile(path: Path, name: String, var template: TemplateAST)
 
