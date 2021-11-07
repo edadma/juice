@@ -8,19 +8,13 @@ Heading 1
 
 this is after heading 1
 
-{{ note }}
-asdf
-
-{{ warning }}
-qwer
-{{ /warning }}
-
-zxcv
-{{ /note }}
+{{ danger title='the title' content='*erty*' / }}
 
 ### subheading 1.1
 
 this is after subheading 1.1
+
+    def function(): Unit = println("do nothing worthwhile")
 
 ### subheading 1.2
 

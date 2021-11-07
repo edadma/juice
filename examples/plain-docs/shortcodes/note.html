@@ -1,7 +1,9 @@
 <article class="message is-info">
-    <div class="message-header">
-        <span>Note</span>
-    </div>
+    {{- if not .noheader }}
+        <div class="message-header">
+            <span>{{ if .title }}{{ .title }}{{ else }} Note {{ end }}</span>
+        </div>
+    {{- end }}
     <div class="message-body">
         {{ markdownify .content }}
     </div>
