@@ -8,6 +8,10 @@ Heading 1
 
 this is after heading 1
 
+{{ note }}
+asdf
+{{ /node }}
+
 ### subheading 1.1
 
 this is after subheading 1.1

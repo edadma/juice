@@ -4,26 +4,27 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ .site.title }}: {{ .site.subtitle }}</title>
-    <link rel="stylesheet" href="{{ 'styles/bulma.min.css' | absURL }}">
-    <link rel="stylesheet" href="{{ 'styles/footer.css' | absURL }}">
+    <link rel="stylesheet" href="{{ 'styles/bulma.min.css' | relURL }}">
+    <link rel="stylesheet" href="{{ 'styles/footer.css' | relURL }}">
     <script src="https://kit.fontawesome.com/8a5bb05f66.js" crossorigin="anonymous"></script>
   </head>
 
   <body>
     <nav class="navbar is-fixed-top is-light" role="navigation" aria-label="main navigation">
-      <div class="navbar-brand">
-        <a class="navbar-item" href="{{ .site.baseURL }}">
-          <img src="{{ 'images/' ++ .site.logo | absURL }}" alt="{{ .site.title }}: {{ .site.subtitle }}">
-        </a>
-      </div>
+      {{- if .site.logo }}
+        <div class="navbar-brand">
+          <a class="navbar-item" href="{{ .site.baseURL }}">
+            <img src="{{ .site.logo | relURL }}" alt="{{ .site.title }}: {{ .site.subtitle }}">
+          </a>
+        </div>
+      {{- end }}
 
       <div class="navbar-menu">
         <div class="navbar-start">
           <a class="navbar-item"  href="{{ .site.baseURL }}">
             Home
           </a>
-          <!-- todo: navbar links have to come from data -->
-          <a class="navbar-item"  href="{{ 'html/general/overview' | absURL }}">
+          <a class="navbar-item"  href="{{ .site.start | relURL }}">
             Documentation
           </a>
           <a class="navbar-item"  href="{{ .site.baseURL }}">
@@ -62,8 +63,10 @@
     <footer class="footer pt-3 pb-3">
       <div class="content has-text-centered">
         <p>
-          <strong><a href="{{ .site.repoLink }}">{{ .site.title }}</a></strong> by <a href="{{ .site.authorLink }}">{{ .site.author }}</a>. The source code is licensed
-          <a href="{{ .site.licenseLink }}">{{ .site.license }}</a>.
+          &copy; {{ now.year }} <a href="{{ .site.authorLink }}">{{ .site.author }}</a>. {{ .site.rightsReserved }}
+          {{- if .site.license }}
+            The source code is licensed <a href="{{ .site.licenseLink }}">{{ .site.license }}</a>.
+          {{- end }}
         </p>
         <p>
           Documentation built with <a href="{{ .site.repoLink }}">Juicer</a>.

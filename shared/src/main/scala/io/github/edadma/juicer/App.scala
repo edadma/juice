@@ -150,16 +150,16 @@ object App {
 //    val sitedata = confdata + /*("contents" -> contents) + */ ("toc" -> sitetoc)
 
     @tailrec
-    def mktocFromContent(l: List[ContentItem]): Unit =
+    def mktocFromContent(l: List[ContentItem], start: String = null): String =
       l match {
-        case Nil =>
+        case Nil => start
         case ContentLabel(label) :: t =>
           sitetoc += TOCLabel(label)
-          mktocFromContent(t)
+          mktocFromContent(t, start)
         case ContentFolder(outdir) :: t =>
           sitetoc += TOCLabel(outdir.getFileName.toString)
-          mktocFromContent(t)
-        case (_: ContentFile) :: _ =>
+          mktocFromContent(t, start)
+        case (c: ContentFile) :: _ =>
           val (headings: List[ContentFile], rest) = l span (_.isInstanceOf[ContentFile])
 
           sitetoc += TOCList(
@@ -169,10 +169,10 @@ object App {
                     commonmark.Util.html(h.toc.headings.head.heading.contents, 2).trim,
                     s"${dst1 relativize h.outdir}/${h.name}"
                   )))
-          mktocFromContent(rest)
+          mktocFromContent(rest, if (start eq null) s"${dst1 relativize c.outdir}/${c.name}/" else start)
       }
 
-    def mktocFromConfig(): Unit = {
+    def mktocFromConfig: String = {
       val buf = new ListBuffer[ContentItem]
 
       confdata("nav") match {
@@ -196,12 +196,10 @@ object App {
       }
     }
 
-    if (confdata contains "nav")
-      mktocFromConfig()
-    else if (site.content.nonEmpty)
-      mktocFromContent(site.content.tail)
-
-    val sitedata = confdata + ("toc" -> sitetoc.toList)
+    val start =
+      if (confdata contains "nav") mktocFromConfig
+      else if (site.content.nonEmpty) mktocFromContent(site.content.tail)
+    val sitedata = confdata + ("toc" -> sitetoc.toList) + ("start" -> start)
     val defaultLayout = conf.defaultLayout
     val baseofLayout = conf.baseofLayout
     val fileLayout = conf.fileLayout
@@ -243,7 +241,8 @@ object App {
           case None    => Nil
         }
       }
-      val pagedata = Map("site" -> sitedata, "page" -> data, "content" -> content, "toc" -> toc, "sub" -> sub)
+      val pagedata =
+        Map("site" -> sitedata, "page" -> data, "content" -> content, "toc" -> toc, "sub" -> sub)
       val folders = {
         val rel = dst1 relativize outdir
 
