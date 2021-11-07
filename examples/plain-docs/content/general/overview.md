@@ -10,7 +10,13 @@ this is after heading 1
 
 {{ note }}
 asdf
-{{ /node }}
+
+{{ warning }}
+qwer
+{{ /warning }}
+
+zxcv
+{{ /note }}
 
 ### subheading 1.1
 

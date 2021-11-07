@@ -1,8 +1,8 @@
-<article class="message is-info">
+<article class="message is-warning">
     <div class="message-header">
-        <span>Note</span>
+        <span>Warning</span>
     </div>
     <div class="message-body">
-        {{ markdownify .content }}
+        <p>{{ .content }}</p>
     </div>
 </article>

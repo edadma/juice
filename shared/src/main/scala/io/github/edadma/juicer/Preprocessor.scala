@@ -47,25 +47,26 @@ class Preprocessor(startDelim: String = "{{",
                 else
                   stack push Shortcode(r, name, attrs, new StringBuilder)
               case ShortcodeEndAST(Ident(_, endname)) =>
-                println("end", endname)
-                val Shortcode(pos, name, attrs, buf) = stack.pop()
+                val Shortcode(_, name, attrs, buf) = stack.pop()
 
                 if (name != endname)
-                  pos.error(s"shortcode end tag name does not match start name: $name")
+                  r.error(s"shortcode end tag name does not match start tag name: $name")
 
                 render(name, attrs, Some(buf.toString))
             }
+
+            process(rest)
           case Some(None) =>
             (if (stack.isEmpty) buf else stack.top.buf) += r.ch
             process(r.next)
-          case None => r.error("unclosed shortcode")
+          case None => r.error("unclosed shortcode tag")
         }
     }
 
     process(CharReader.fromString(content))
 
     if (stack.nonEmpty)
-      stack.top.pos.error(s"unclosed shortcode '${stack.top.name}'")
+      stack.top.pos.error(s"unclosed shortcode body: ${stack.top.name}")
 
     buf.toString
   }

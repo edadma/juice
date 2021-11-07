@@ -10,7 +10,7 @@ class ShortcodeParser(val input: ParserInput, line: Int, col: Int) extends Parse
 
   implicit def wsStr(s: String): Rule0 = rule(str(s) ~ sp)
 
-  def shortcode: Rule1[ShortcodeParserAST] = rule(sp ~ (shortcodeStart | shortcodeEnd))
+  def shortcode: Rule1[ShortcodeParserAST] = rule(sp ~ (shortcodeStart | shortcodeEnd) ~ EOI)
 
   def attribute: Rule1[String] =
     rule("=" ~ (word | singleQuoteString | doubleQuoteString))
