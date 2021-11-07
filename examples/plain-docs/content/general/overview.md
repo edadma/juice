@@ -6,7 +6,7 @@ this is an overview
 Heading 1
 ---------
 
-this is after heading 1
+this is after heading 1 {{ icon name='bug-line' / }}
 
 {{ danger title='the title' content='*erty*' / }}
 
