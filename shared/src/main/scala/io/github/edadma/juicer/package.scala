@@ -85,8 +85,7 @@ package object juicer {
   def dirsExcluding(listing: List[Path], exclude: Path*): List[Path] =
     listing filter (p => isDir(p) && !exclude.contains(p))
 
-  lazy val templateFunctions: Map[String, squiggly.TemplateFunction] = TemplateBuiltin.functions
-  lazy val templateParser: TemplateParser = new TemplateParser(functions = templateFunctions)
+  lazy val templateParser: TemplateParser = new TemplateParser()
   lazy val markdownParser = new CommonMarkParser
 
 }

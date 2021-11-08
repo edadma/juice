@@ -75,13 +75,11 @@ object App {
     val confdata = configObject(siteconf.root)
     val conf = new ConfigWrapper(siteconf)
     val baseURL = parseURL(conf.baseURL) getOrElse problem(s"invalid base URL: ${conf.baseURL}")
+    val linkCallback = (url: String) => Paths.get(baseURL.path) resolve url toString
     val rendererData =
       Map(
         "baseURL" -> baseURL,
-        "link" -> { (url: String) =>
-          println(url, Paths.get(baseURL.path) resolve url)
-          Paths.get(baseURL.path) resolve url toString
-        }
+        "link" -> linkCallback
       )
 
     show(s"base URL = ${baseURL.base}${baseURL.path}")
@@ -95,8 +93,7 @@ object App {
 
           t.template
         } orElse problem(s"partial '$name' not found")
-    val templateRenderer: TemplateRenderer =
-      new TemplateRenderer(partials = partialsLoader, functions = templateFunctions, data = rendererData)
+    val templateRenderer: TemplateRenderer = new TemplateRenderer(partials = partialsLoader, data = rendererData)
     val shortcodesLoader: TemplateLoader =
       (name: String) =>
         site.shortcodeTemplates get name map { t =>
@@ -113,7 +110,7 @@ object App {
       val doc = markdownParser.parse(preprocessor.process(c.source))
 
       c.toc = commonmark.Util.toc(doc)
-      c.content = commonmark.Util.html(doc, 2).trim
+      c.content = commonmark.Util.html(doc, 2, link = linkCallback).trim
     }
 
 //    @tailrec
