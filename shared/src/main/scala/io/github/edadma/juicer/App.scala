@@ -1,6 +1,6 @@
 package io.github.edadma.juicer
 
-import java.nio.file.{Files, Path}
+import java.nio.file.{Files, Path, Paths}
 import scala.collection.immutable.VectorMap
 import scala.jdk.CollectionConverters._
 import scala.language.postfixOps
@@ -74,9 +74,17 @@ object App {
 
     val confdata = configObject(siteconf.root)
     val conf = new ConfigWrapper(siteconf)
-    val rendererData = parseurl(conf.baseURL) getOrElse problem(s"invalid base URL: ${conf.baseURL}")
+    val baseURL = parseURL(conf.baseURL) getOrElse problem(s"invalid base URL: ${conf.baseURL}")
+    val rendererData =
+      Map(
+        "baseURL" -> baseURL,
+        "link" -> { (url: String) =>
+          println(url, Paths.get(baseURL.path) resolve url)
+          Paths.get(baseURL.path) resolve url toString
+        }
+      )
 
-    show(s"base URL = ${rendererData.base}${rendererData.path}")
+    show(s"base URL = ${baseURL.base}${baseURL.path}")
 
     val site = Process(src1, dst1, conf)
     val partialsLoader: TemplateLoader =

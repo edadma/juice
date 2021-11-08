@@ -1,7 +1,7 @@
 package io.github.edadma
 
 import io.github.edadma.commonmark.CommonMarkParser
-import io.github.edadma.squiggly.{TemplateBuiltin, TemplateParser}
+import io.github.edadma.squiggly.{BaseURL, TemplateBuiltin, TemplateParser}
 import org.ekrich.config.impl.{ConfigBoolean, ConfigNumber, ConfigString}
 import org.ekrich.config.{ConfigList, ConfigObject, ConfigValue}
 
@@ -44,9 +44,7 @@ package object juicer {
 
   val BaseURLRegex: Regex = raw"(http(?:s)?://[a-zA-Z0-9-.]+(?::\d+)?|file://)?((?:/[a-zA-Z0-9-.]+)*/?)".r
 
-  case class BaseURL(base: String, path: String)
-
-  def parseurl(s: String): Option[BaseURL] =
+  def parseURL(s: String): Option[BaseURL] =
     s match {
       case BaseURLRegex(base, path) =>
         Some(
@@ -87,8 +85,7 @@ package object juicer {
   def dirsExcluding(listing: List[Path], exclude: Path*): List[Path] =
     listing filter (p => isDir(p) && !exclude.contains(p))
 
-  lazy val templateFunctions
-    : Map[String, squiggly.TemplateFunction] = TemplateBuiltin.functions ++ JuicerBuiltin.functions
+  lazy val templateFunctions: Map[String, squiggly.TemplateFunction] = TemplateBuiltin.functions
   lazy val templateParser: TemplateParser = new TemplateParser(functions = templateFunctions)
   lazy val markdownParser = new CommonMarkParser
 
