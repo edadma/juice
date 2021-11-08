@@ -6,6 +6,12 @@ this is an overview
 Heading 1
 ---------
 
+```scala
+some code
+```
+
+{{ tag text='1' / }} description
+
 {{ box }}
 here's a box
 {{ /box }}
