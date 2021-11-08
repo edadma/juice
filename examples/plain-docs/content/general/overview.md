@@ -6,6 +6,18 @@ this is an overview
 Heading 1
 ---------
 
+{{ box }}
+here's a box
+{{ /box }}
+
+{{ sidebar title='Title'}}
+this is a sidebar this is a sidebar this is a sidebar this is a sidebar this is a sidebar this is a sidebar
+
+end of the sidebar
+{{ /sidebar }}
+
+![juicer](images/juicer-150.png)
+
 this is after heading 1 {{ icon name='bug-line' / }}
 
 {{ danger title='the title' content='*erty*' / }}
