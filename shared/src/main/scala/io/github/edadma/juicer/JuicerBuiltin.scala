@@ -15,7 +15,6 @@ object JuicerBuiltin {
 
           s"$base${Paths.get(path) resolve arg}"
       }),
-      TemplateFunction("juicerurl", 0, _ => "https://github.com/edadma/juicer"),
       TemplateFunction("relURL", 1, {
         case (con, Seq(arg: String)) => Paths.get(con.renderer.data.asInstanceOf[BaseURL].path) resolve arg toString
       }),

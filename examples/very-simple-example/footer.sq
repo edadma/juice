@@ -1,5 +1,5 @@
 <hr>
-<p>&copy; 2021, {{ .site.author }}. Built with <a href="{{ juicerurl }}">Juicer</a>.</p>
+<p>&copy; 2021, {{ .site.author }}. Built with <a href="https://github.com/edadma/juicer">Juicer</a>.</p>
 </div>
 </body>
 </html>
