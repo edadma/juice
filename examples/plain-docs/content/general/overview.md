@@ -6,6 +6,8 @@ this is an overview
 Heading 1
 ---------
 
+happy :slightly_smiling_face: face
+
 ```scala
 some code
 ```
