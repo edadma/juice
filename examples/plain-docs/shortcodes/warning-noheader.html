@@ -1,7 +1,4 @@
 <article class="message is-warning">
-    <div class="message-header">
-        <span>{{ if .args[0] }}{{ .args[0] }}{{ else }}Warning{{ end }}</span>
-    </div>
     <div class="message-body">
         {{ markdownify .content }}
     </div>

@@ -1,7 +1,7 @@
 <div class="notification is-link is-light">
-    {{- if .title }}
+    {{- if .args[0] }}
         <div class="pb-2 is-size-5 has-text-weight-semibold has-text-centered">
-            <span>{{ .title }}</span>
+            <span>{{ .args[0] }}</span>
         </div>
     {{- end }}
     {{ markdownify .content }}

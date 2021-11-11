@@ -6,6 +6,7 @@ import io.github.edadma.squiggly._
 import java.io.{ByteArrayOutputStream, PrintStream}
 import scala.annotation.tailrec
 import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
 import scala.language.postfixOps
 
 class Preprocessor(startDelim: String = "{{",
@@ -13,7 +14,7 @@ class Preprocessor(startDelim: String = "{{",
                    shortcodes: TemplateLoader,
                    renderer: TemplateRenderer) {
 
-  case class Shortcode(pos: CharReader, name: String, attrs: Seq[(Ident, Option[String])], buf: StringBuilder)
+  case class Shortcode(pos: CharReader, name: String, params: Seq[ShortcodeParameter], buf: StringBuilder)
 
   def process(content: String): String = {
     val buf = new StringBuilder
@@ -21,9 +22,18 @@ class Preprocessor(startDelim: String = "{{",
 
     @tailrec
     def process(r: CharReader): Unit = {
-      def render(name: String, attrs: Seq[(Ident, Option[String])], content: Option[String]): Unit = {
-        val data = (attrs map { case (Ident(_, k), v) => k -> v.getOrElse("true") }) ++ (content map (s =>
-          List("content" -> s)) getOrElse Nil) toMap
+      def render(name: String, params: Seq[ShortcodeParameter], content: Option[String]): Unit = {
+        val unamed = new ListBuffer[String]
+        val named = new ListBuffer[(String, String)]
+
+        params foreach {
+          case NamedParameter(Ident(_, k), v) => named += k -> v
+          case PositionalParameter(v)         => unamed += v
+        }
+
+        val unamedData = if (unamed.nonEmpty) List("args" -> unamed.toList) else Nil
+        val contentData = content map (s => List("content" -> s)) getOrElse Nil
+        val data = unamedData ++ named.toList ++ contentData toMap
 
         shortcodes(name) match {
           case Some(template) =>

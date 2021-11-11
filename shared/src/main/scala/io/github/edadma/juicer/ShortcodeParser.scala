@@ -26,7 +26,10 @@ class ShortcodeParser(val input: ParserInput, line: Int, col: Int) extends Parse
 
   def doubleQuoteString: Rule1[String] = rule('"' ~ capture(zeroOrMore("\\\"" | noneOf("\"\n"))) ~ '"' ~ sp)
 
-  def unquotedString: Rule1[String] = rule(capture(oneOrMore(CharPredicate.AlphaNum | '_' | '-')) ~ sp)
+  def unquotedString: Rule1[String] =
+    rule(
+      capture((CharPredicate.AlphaNum | '_' | '-' | ':') ~ zeroOrMore(CharPredicate.AlphaNum | '_' | '-' | ':' |
+        test(charAtRC(1).isLetterOrDigit || charAtRC(1) == '-' || charAtRC(1) == '_') ~ '/')) ~ sp)
 
   def ident: Rule1[Ident] =
     rule {
