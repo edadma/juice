@@ -9,8 +9,8 @@ import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.language.postfixOps
 
-class Preprocessor(startDelim: String = "{{",
-                   endDelim: String = "}}",
+class Preprocessor(startDelim: String = "[=",
+                   endDelim: String = "=]",
                    shortcodes: TemplateLoader,
                    renderer: TemplateRenderer) {
 
