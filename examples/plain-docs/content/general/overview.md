@@ -3,7 +3,9 @@ Overview
 
 this is an overview
 
-asdf [= icon bug-line text=zxcv /=]
+[= warning =]
+Using absolute paths with links is not officially supported. Relative paths are adjusted by MkDocs to ensure they are always relative to the page. Absolute paths are not modified at all. This means that your links using absolute paths might work fine in your local environment but they might break once you deploy them to your production server.
+[= /warning =]
 
 ```squiggly
 {{ define main }}

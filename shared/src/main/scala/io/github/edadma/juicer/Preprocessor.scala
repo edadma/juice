@@ -31,7 +31,7 @@ class Preprocessor(startDelim: String = "[=",
           case PositionalParameter(v)         => unamed += v
         }
 
-        val unamedData = if (unamed.nonEmpty) List("args" -> unamed.toList) else Nil
+        val unamedData = List("args" -> unamed.toList)
         val contentData = content map (s => List("content" -> s)) getOrElse Nil
         val data = unamedData ++ named.toList ++ contentData toMap
 
