@@ -14,14 +14,14 @@ class Preprocessor(startDelim: String = "[=",
                    shortcodes: TemplateLoader,
                    renderer: TemplateRenderer) {
 
-  case class Shortcode(pos: CharReader, name: String, params: Seq[ShortcodeParameter], buf: StringBuilder)
+  case class Shortcode(pos: CharReader, name: String, params: Seq[ShortcodeParameter], buf: mutable.StringBuilder)
 
   def process(content: String): String = {
-    val buf = new StringBuilder
+    val buf = new mutable.StringBuilder
     val stack = new mutable.Stack[Shortcode]
 
     @tailrec
-    def process(r: CharReader): Unit = {
+    def processShortcode(r: CharReader): Unit = {
       def render(name: String, params: Seq[ShortcodeParameter], content: Option[String]): Unit = {
         val unamed = new ListBuffer[String]
         val named = new ListBuffer[(String, String)]
@@ -55,7 +55,7 @@ class Preprocessor(startDelim: String = "[=",
                 if (closed)
                   render(name, attrs, None)
                 else
-                  stack push Shortcode(r, name, attrs, new StringBuilder)
+                  stack push Shortcode(r, name, attrs, new mutable.StringBuilder)
               case ShortcodeEndAST(Ident(_, endname)) =>
                 val Shortcode(_, name, attrs, buf) = stack.pop()
 
@@ -65,15 +65,15 @@ class Preprocessor(startDelim: String = "[=",
                 render(name, attrs, Some(buf.toString))
             }
 
-            process(rest)
+            processShortcode(rest)
           case Some(None) =>
             (if (stack.isEmpty) buf else stack.top.buf) += r.ch
-            process(r.next)
+            processShortcode(r.next)
           case None => r.error("unclosed shortcode tag")
         }
     }
 
-    process(CharReader.fromString(content))
+    processShortcode(CharReader.fromString(content))
 
     if (stack.nonEmpty)
       stack.top.pos.error(s"unclosed shortcode body: ${stack.top.name}")

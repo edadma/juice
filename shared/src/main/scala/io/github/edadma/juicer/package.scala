@@ -1,7 +1,7 @@
 package io.github.edadma
 
 import io.github.edadma.commonmark.CommonMarkParser
-import io.github.edadma.squiggly.{BaseURL, TemplateBuiltin, TemplateParser}
+import io.github.edadma.squiggly.{BaseURL, TemplateParser}
 import org.ekrich.config.impl.{ConfigBoolean, ConfigNumber, ConfigString}
 import org.ekrich.config.{ConfigList, ConfigObject, ConfigValue}
 
@@ -42,7 +42,7 @@ package object juicer {
   def configObject(o: ConfigObject): VectorMap[String, Any] =
     o.entrySet.asScala.toList map (e => e.getKey -> configValue(e.getValue)) sortBy (_._1) to VectorMap
 
-  val BaseURLRegex: Regex = raw"(http(?:s)?://[a-zA-Z0-9-.]+(?::\d+)?|file://)?((?:/[a-zA-Z0-9-.]+)*/?)".r
+  val BaseURLRegex: Regex = raw"(https?://[a-zA-Z0-9-.]+(?::\d+)?|file://)?((?:/[a-zA-Z0-9-.]+)*/?)".r
 
   def parseURL(s: String): Option[BaseURL] =
     s match {
@@ -66,7 +66,7 @@ package object juicer {
 
   def list(dir: Path): List[Path] = Files.list(dir).iterator.asScala.toList sortBy (_.getFileName.toString)
 
-  lazy val markdownExtensions = List("md", "markdown", "mkd", "mkdn", "mdown")
+  lazy val markdownExtensions: Seq[String] = List("md", "markdown", "mkd", "mkdn", "mdown")
 
   def filesIncludingExtensions(listing: List[Path], exts: String*): List[Path] = {
     val suffixes = exts map ('.' +: _)
