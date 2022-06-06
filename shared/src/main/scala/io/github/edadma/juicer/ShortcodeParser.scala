@@ -1,7 +1,6 @@
 package io.github.edadma.juicer
 
 import org.parboiled2._
-import shapeless.HNil
 
 import scala.language.implicitConversions
 import scala.util.{Failure, Success}

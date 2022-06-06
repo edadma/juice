@@ -12,7 +12,6 @@ import org.ekrich.config.{Config, ConfigFactory, ConfigParseOptions, ConfigSynta
 
 import java.io.{FileOutputStream, OutputStream}
 import scala.annotation.tailrec
-import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
 object App {
@@ -190,7 +189,7 @@ object App {
                 buf += ContentLabel(label)
             case file: Map[_, _]
                 if file.size == 1 && file.head._1.isInstanceOf[String] && file.head._2.isInstanceOf[String] =>
-              val (name: String, path: String) = file.head
+              val (_: String, path: String) = file.head
 
               buf += site.map.getOrElse(path, problem(s"content file not found $path"))
             case e => problem(s"invalid nav element: $e")
@@ -257,7 +256,7 @@ object App {
       val layout = if (name == folderContent) folderLayout else fileLayout
       val particularTemplate =
         findLayout(folders, layout) match {
-          case Some(TemplateFile(templatePath, templateName, template)) =>
+          case Some(TemplateFile(templatePath, _, template)) =>
             show(s"render $name using ${src1 relativize templatePath}")
             Some(template)
           case None =>
@@ -266,7 +265,7 @@ object App {
         }
       val baseofTemplate =
         findLayout(folders, baseofLayout) match {
-          case Some(TemplateFile(templatePath, templateName, template)) =>
+          case Some(TemplateFile(templatePath, _, template)) =>
             show(s"render $name using ${src1 relativize templatePath}")
             Some(template)
           case None =>

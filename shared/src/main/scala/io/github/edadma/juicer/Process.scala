@@ -48,16 +48,16 @@ object Process {
             if (uncleaned == dst) dst
             else
               (if (html == "") dst else dst resolve html) resolve
-                clean(uncleaned.getFileName.toString, stripPrefix = true)
+                cleanName(uncleaned.getFileName.toString, stripPrefix = true)
           } else {
             val prev = contentItems.last.outdir
 
             if (prev.getNameCount >= uncleaned.getNameCount)
               Paths.get(File.separator) resolve prev.subpath(0, uncleaned.getNameCount - (if (html == "") 1 else 0)) resolve
-                clean(uncleaned.getFileName.toString, stripPrefix = true)
+                cleanName(uncleaned.getFileName.toString, stripPrefix = true)
             else
               (if (html == "") prev else prev resolve html) resolve
-                clean(uncleaned.getFileName.toString, stripPrefix = true)
+                cleanName(uncleaned.getFileName.toString, stripPrefix = true)
           }
         }
 
@@ -77,7 +77,7 @@ object Process {
 
             first match {
               case "---" =>
-                val buf = new StringBuilder
+                val buf = new mutable.StringBuilder
 
                 @tailrec
                 def line(): Unit =
@@ -101,7 +101,7 @@ object Process {
           val name =
             withoutExtension(p.getFileName.toString) match {
               case `folderContent` => folderContent
-              case n               => clean(n, stripPrefix)
+              case n               => cleanName(n, stripPrefix)
             }
           val contentFile = ContentFile(
             outdir,
@@ -230,8 +230,8 @@ object Process {
       case dot => filename substring (0, dot)
     }
 
-  def clean(s: String, stripPrefix: Boolean): String = {
-    val buf = new StringBuilder(s)
+  def cleanName(s: String, stripPrefix: Boolean): String = {
+    val buf = new mutable.StringBuilder(s)
 
     if (stripPrefix) {
       while (buf.nonEmpty && buf.head.isDigit) buf.deleteCharAt(0)
