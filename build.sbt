@@ -1,15 +1,21 @@
 ThisBuild / licenses += "ISC" -> url("https://opensource.org/licenses/ISC")
 ThisBuild / versionScheme := Some("semver-spec")
 
-lazy val juicer = crossProject(JSPlatform, JVMPlatform, NativePlatform).in(file(".")).
-  settings(
+lazy val juicer = crossProject(JSPlatform, JVMPlatform, NativePlatform)
+  .in(file("."))
+  .settings(
     name := "juicer",
     version := "0.1.0",
-    scalaVersion := "2.13.6",
+    scalaVersion := "2.13.8",
     scalacOptions ++=
       Seq(
-        "-deprecation", "-feature", "-unchecked",
-        "-language:postfixOps", "-language:implicitConversions", "-language:existentials", "-language:dynamics",
+        "-deprecation",
+        "-feature",
+        "-unchecked",
+        "-language:postfixOps",
+        "-language:implicitConversions",
+        "-language:existentials",
+        "-language:dynamics",
         "-Xasync"
       ),
     organization := "io.github.edadma",
@@ -34,15 +40,15 @@ lazy val juicer = crossProject(JSPlatform, JVMPlatform, NativePlatform).in(file(
     publishMavenStyle := true,
     Test / publishArtifact := false,
     licenses += "ISC" -> url("https://opensource.org/licenses/ISC"),
-  ).
-  jvmSettings(
+  )
+  .jvmSettings(
     libraryDependencies += "org.scala-js" %% "scalajs-stubs" % "1.0.0" % "provided",
-  ).
-  nativeSettings(
+  )
+  .nativeSettings(
     nativeLinkStubs := true,
     libraryDependencies += "org.ekrich" %%% "sjavatime" % "1.1.5"
-  ).
-  jsSettings(
+  )
+  .jsSettings(
     jsEnv := new org.scalajs.jsenv.nodejs.NodeJSEnv(),
 //    Test / scalaJSUseMainModuleInitializer := true,
 //    Test / scalaJSUseTestModuleInitializer := false,
