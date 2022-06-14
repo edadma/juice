@@ -1,7 +1,7 @@
 ThisBuild / licenses += "ISC" -> url("https://opensource.org/licenses/ISC")
 ThisBuild / versionScheme := Some("semver-spec")
 
-lazy val juicer = crossProject(JSPlatform, JVMPlatform, NativePlatform)
+lazy val juicer = crossProject( /*JSPlatform, */ JVMPlatform /*, NativePlatform*/ )
   .in(file("."))
   .settings(
     name := "juicer",
@@ -44,11 +44,11 @@ lazy val juicer = crossProject(JSPlatform, JVMPlatform, NativePlatform)
   .jvmSettings(
     libraryDependencies += "org.scala-js" %% "scalajs-stubs" % "1.0.0" % "provided",
   )
-  .nativeSettings(
+/*.nativeSettings(
     nativeLinkStubs := true,
     libraryDependencies += "org.ekrich" %%% "sjavatime" % "1.1.5"
-  )
-  .jsSettings(
+  )*/
+/*.jsSettings(
     jsEnv := new org.scalajs.jsenv.nodejs.NodeJSEnv(),
 //    Test / scalaJSUseMainModuleInitializer := true,
 //    Test / scalaJSUseTestModuleInitializer := false,
@@ -56,4 +56,4 @@ lazy val juicer = crossProject(JSPlatform, JVMPlatform, NativePlatform)
     Test / scalaJSUseTestModuleInitializer := true,
     scalaJSUseMainModuleInitializer := true,
     libraryDependencies += "org.ekrich" %%% "sjavatime" % "1.1.5"
-  )
+  )*/
