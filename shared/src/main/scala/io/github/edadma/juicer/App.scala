@@ -74,7 +74,9 @@ object App {
     val confdata = configObject(siteconf.root)
     val conf = new ConfigWrapper(siteconf)
     val baseURL = parseURL(conf.baseURL) getOrElse problem(s"invalid base URL: ${conf.baseURL}")
-    val linkCallback = (url: String) => Paths.get(baseURL.path) resolve url toString
+    val linkCallback = (url: String) =>
+      if (absoluteURL(url)) url
+      else Paths.get(baseURL.path) resolve url toString
     val rendererData =
       Map(
         "baseURL" -> baseURL,

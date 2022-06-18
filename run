@@ -1,1 +1,1 @@
-juicerJVM/run build -v -b /juicer/examples/plain-docs/public -s examples/plain-docs
+juicerJVM/run build -v -b /juicer/examples/docsrc/public -s examples/docsrc

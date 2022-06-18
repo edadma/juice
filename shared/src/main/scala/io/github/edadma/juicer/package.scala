@@ -88,4 +88,7 @@ package object juicer {
   lazy val templateParser: TemplateParser = new TemplateParser()
   lazy val markdownParser = new CommonMarkParser
 
+  val absoluteURLRegex: Regex = "[a-z]+://.*".r
+
+  def absoluteURL(url: String): Boolean = absoluteURLRegex matches url
 }
